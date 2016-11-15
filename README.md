@@ -1,0 +1,2 @@
+# Implementacja_gry_FPS_dla_OpenGL
+Tematem projektu będzie stworzenie gry komputerowej, za pomocą biblioteki OpenGL. Gra będzie typu FPS, postać poruszać się będzie po trójwymiarowym środowisku, a jej zadaniem będzie eliminacja przeciwników i dotarcie do punktu końcowego mapy. Kamera będzie umiejscowiona z perspektywy pierwszej osoby (widoczna będzie jedynie broń, a nie cała postać). Na mapie będą znajdować się różnego rodzaju bonusy, które będą dodawać postaci dodatkowe statystyki. Mapa będzie wczytywana z pliku, a przeciwnicy będą rozlokowani w sposób losowy po mapie.
