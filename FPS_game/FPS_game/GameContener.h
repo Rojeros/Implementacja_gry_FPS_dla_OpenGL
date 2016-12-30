@@ -12,6 +12,8 @@
 #include "Map.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "LevelLoad.h"
+#include "Object.h"
 
 class GameContener
 {
@@ -21,6 +23,7 @@ public:
 	~GameContener();
 
 private:
+	static GLuint TextureID;
 	// Our SDL_Window
 	SDL_Window *mainWindow;
 	// Our opengl context handle
@@ -32,6 +35,7 @@ private:
 	int screen_height ;
 	int full_screen;
 	bool gameRunning;
+	Object * enemy;
 
 	bool SetOpenGLAttributes();
 	void PrintSDL_GL_Attributes();

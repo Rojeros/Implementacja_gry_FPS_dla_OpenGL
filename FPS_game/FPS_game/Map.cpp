@@ -4,8 +4,9 @@
 
 #include <gl\gl.h>
 #include <gl\glu.h>
-#include <SDL.h>
 
+#include <SDL.h>
+#include <GL\SDL_image.h>
 
 // this function taken from SDL documentation
 // http://www.libsdl.org/cgi/docwiki.cgi/Introduction_to_SDL_Video#getpixel
@@ -131,38 +132,55 @@ void Map::initTerrain(char *fileName, float heightReducingFactor)
 
 	glNewList(terrain->terrainList, GL_COMPILE);
 
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	
 	glBegin(GL_TRIANGLES);
 	for (i = 1; i < terrain->width; i++)
 	{
 		for (j = 1; j < terrain->height; j++)
 		{
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex3f(terrain->vertices[i - 1][j - 1].x, terrain->vertices[i - 1][j - 1].y, terrain->vertices[i - 1][j - 1].z);
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex3f(terrain->vertices[i][j - 1].x, terrain->vertices[i][j - 1].y, terrain->vertices[i][j - 1].z);
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex3f(terrain->vertices[i][j].x, terrain->vertices[i][j].y, terrain->vertices[i][j].z);
+			vector3d v1(terrain->vertices[i - 1][j - 1].x, terrain->vertices[i - 1][j - 1].y, terrain->vertices[i - 1][j - 1].z);
+			vector3d v2(terrain->vertices[i][j - 1].x, terrain->vertices[i][j - 1].y, terrain->vertices[i][j - 1].z);
+			vector3d v3(terrain->vertices[i][j].x, terrain->vertices[i][j].y, terrain->vertices[i][j].z);
+
+			vector3d vn = vector3d::normalVector(v1, v2, v3);
+			glNormal3f(vn.x, vn.y, vn.z);
 
 			glTexCoord2f(0.0f, 0.0f);
-			glVertex3f(terrain->vertices[i - 1][j - 1].x, terrain->vertices[i - 1][j - 1].y, terrain->vertices[i - 1][j - 1].z);
+			glVertex3f(v1.x, v1.y, v1.z);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex3f(v2.x, v2.y, v2.z);
 			glTexCoord2f(1.0f, 1.0f);
-			glVertex3f(terrain->vertices[i][j].x, terrain->vertices[i][j].y, terrain->vertices[i][j].z);
+			glVertex3f(v3.x, v3.y, v3.z);
+
+			v1 = vector3d(terrain->vertices[i - 1][j - 1].x, terrain->vertices[i - 1][j - 1].y, terrain->vertices[i - 1][j - 1].z);
+			v2= vector3d(terrain->vertices[i][j].x, terrain->vertices[i][j].y, terrain->vertices[i][j].z);
+			v3= vector3d(terrain->vertices[i - 1][j].x, terrain->vertices[i - 1][j].y, terrain->vertices[i - 1][j].z);
+			vn = vector3d::normalVector(v1, v2, v3);
+			glNormal3f(vn.x, vn.y, vn.z);
+
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex3f(v1.x, v1.y, v1.z);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex3f(v2.x, v2.y, v2.z);
 			glTexCoord2f(0.0f, 1.0f);
-			glVertex3f(terrain->vertices[i - 1][j].x, terrain->vertices[i - 1][j].y, terrain->vertices[i - 1][j].z);
+			glVertex3f(v3.x, v3.y, v3.z);
 		}
 	}
 	glEnd();
 
 	glEndList();
 
-	SDL_Surface * tex= SDL_LoadBMP("data/grass.bmp");
+	glEnable(GL_TEXTURE_2D);
+	
+	SDL_Surface * tex= SDL_LoadBMP("data/grass2.bmp");
+	tex = SDL_ConvertSurfaceFormat(tex, SDL_PIXELFORMAT_RGB24, 0);
 	glGenTextures(1, (GLuint*)&terrain->terrainTexture);
 	glBindTexture(GL_TEXTURE_2D, (GLuint)terrain->terrainTexture);
 
-	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, tex->w, tex->h, GL_RGB, GL_UNSIGNED_BYTE, tex->pixels);
+	gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB, tex->w, tex->h, GL_RGB, GL_UNSIGNED_BYTE, tex->pixels);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glDisable(GL_TEXTURE_2D);
 }
 
 
@@ -184,8 +202,10 @@ void Map::freeTerrain()
 
 void Map::renderTerrain()
 {
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, terrain->terrainTexture);
 	glCallList(terrain->terrainList);
+	glDisable(GL_TEXTURE_2D);
 }
 
 

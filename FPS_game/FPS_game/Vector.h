@@ -10,6 +10,7 @@ public:
 	vector3d();
 	vector3d(float a, float b);
 	vector3d(float a, float b, float c);
+	vector3d(const vector3d & a);
 	~vector3d() {};
 	float getX();
 	float getY();
@@ -26,6 +27,7 @@ public:
 	void changeY(float b);
 	void changeZ(float c);
 	void normalize();
+	static vector3d normalVector(const vector3d & vec1, const vector3d & vec2, const vector3d& vec3);
 	bool operator==(const vector3d& vec2);
 	bool operator!=(const vector3d& vec2);
 	bool operator>=(const vector3d& vec2);

@@ -1,7 +1,12 @@
 #include "GameContener.h"
 #include "Player.h"
 #include <iostream>
-
+#include <vector>
+GLfloat ambient_light[4] =
+{
+	0.2, 0.2, 0.2, 1.0
+};
+GLuint GameContener::TextureID;
 GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512),gameRunning(true)
 {
 	map = new Map();
@@ -72,6 +77,7 @@ bool GameContener::SetupRC()
 
 	SDL_ShowCursor(SDL_DISABLE);
 
+	
 	glShadeModel(GL_SMOOTH);
 
 	glCullFace(GL_BACK);
@@ -91,6 +97,34 @@ bool GameContener::SetupRC()
 
 	glOrtho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);
 
+	glEnable(GL_LIGHTING);
+
+	// w³¹czenie œwiat³a GL_LIGHT0 z parametrami domyœlnymi
+	glEnable(GL_LIGHT0);
+	//defining global ambient
+	GLfloat global_ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+
+	// Create light components
+	GLfloat ambientLight[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	GLfloat diffuseLight[] = { 0.8f, 0.8f, 0.8, 1.0f };
+	GLfloat specularLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	GLfloat position[] = { -1.5f, 4.0f, 4.0f, 1.0f };
+
+	// Assign created components to GL_LIGHT0
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+	glLightfv(GL_LIGHT0, GL_POSITION, position);
+
+	float specReflection[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection);
+	glMateriali(GL_FRONT, GL_SHININESS, 96);
+
+
+	
+
+
 
 	return true;
 }
@@ -99,14 +133,14 @@ void GameContener::Render()
 {
 
 	/* rysujemy tutaj */
-	glClearColor(0.0, 0.0, 0.0, 1.0); //clear the screen to black
+	glClearColor(0.4, 0.7, 1.0, 0.5); //clear the screen to black
 	glClearDepth(1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear the color buffer and the depth buffer
 	glClearDepth(1.0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-
+	glDisable(GL_LIGHTING);
 	gluPerspective(45, screen_width / screen_height, 0.1, 500.0);
 	glBegin(GL_LINES);
 	for (int i = 0; i <= 100; i++) {
@@ -117,11 +151,23 @@ void GameContener::Render()
 		glVertex3f(i, 0, -100);
 	};
 	glEnd();
+
 	player->update(keys,map->getTerrainHeight(player->getX(),player->getZ()));
 
 	player->show();
-	std::cout<<player->getCamera()->getLocation();
+	//std::cout<<player->getCamera()->getLocation();
+
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	map->renderTerrain();
+
+	
+
+	
+	glTranslatef(50, 12, -50);
+	
+	enemy->draw();
+
+
 	SDL_GL_SwapWindow(mainWindow);
 
 	return;
@@ -209,6 +255,9 @@ void GameContener::StartEngine()
 {
 	player = new Player();
 	map->initTerrain("data/heightMap.bmp",0.1);
+	LevelLoad lvl1;
+	enemy= lvl1.loadFromFile("data/dragon.obj");
+//	LevelLoad::vertexBuffer;
 	/* inicjujemy engine tutaj */
 	return;
 }
