@@ -1,4 +1,5 @@
 #include "LevelLoad.h"
+#include "FreeImage.h"
 //TODO: add errors
  material::material(const char* na, float al, float n, float ni2, float* d, float* a, float* s, int i, int t)
  {
@@ -138,7 +139,7 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 
 
 			for (int i = 0; i<loadedTextures.size(); i++)
-				if (loadedTextures[i] == filename2)
+				if (loadedTextures[i] == name)
 				{
 					texture = loadedTexturesNum[i];
 					l = 1;
@@ -148,13 +149,59 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 				
 			GLuint texture1;
 			glEnable(GL_TEXTURE_2D);
+			//image format
+			FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+			//pointer to the image, once loaded
+			FIBITMAP *dib(0);
+			//pointer to the image data
+			BYTE* bits(0);
+			//image width and height
+			unsigned int width(0), height(0);
+			//OpenGL's image ID to map to
+	
 
-			SDL_Surface * te2x = SDL_LoadBMP(filename2.c_str());
-			if (te2x == NULL) {
-				int a = 0;
-				a++;
+			//check the file signature and deduce its format
+			fif = FreeImage_GetFileType(filename2.c_str(), 0);
+			//if still unknown, try to guess the file format from the file extension
+			if (fif == FIF_UNKNOWN)
+				fif = FreeImage_GetFIFFromFilename(filename2.c_str());
+			//if still unkown, return failure
+			if (fif == FIF_UNKNOWN) {
+				std::cout << "image loading error\n";
+				return false;
 			}
-			te2x = SDL_ConvertSurfaceFormat(te2x, SDL_PIXELFORMAT_RGB24, 0);
+			//std::cout << "FIF " << fif << " " << filename << std::endl;
+
+			//check that the plugin has reading capabilities and load the file
+			if (FreeImage_FIFSupportsReading(fif))
+				dib = FreeImage_Load(fif, filename2.c_str());
+			//if the image failed to load, return failure
+			if (!dib) {
+				std::cout << "image loading error\n";
+				return false;
+			}
+			//retrieve the image data
+			bits = FreeImage_GetBits(dib);
+			//get the image width and height
+			width = FreeImage_GetWidth(dib);
+			height = FreeImage_GetHeight(dib);
+		
+			FREE_IMAGE_COLOR_TYPE color = FreeImage_GetColorType(dib);
+			if (color != FIC_RGB && color != FIC_RGBALPHA)
+			{
+				FreeImage_Unload(dib);
+				std::cout << "image loading error\n";
+				return false;
+			}
+			//if this somehow one of these failed (they shouldn't), return failure
+		//	std::cout << (bits == 0) << std::endl;
+			if ((bits == 0) || (width == 0) || (height == 0)) {
+				std::cout << "image loading error\n";
+				return false;
+			}
+			//std::cout << width << " " << height << std::endl;
+			//if this texture ID is in use, unload the current texture
+
 			glGenTextures(1, &texture1);
 			glBindTexture(GL_TEXTURE_2D, texture1);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -163,13 +210,14 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, te2x->w, te2x->h, GL_RGB, GL_UNSIGNED_BYTE, te2x->pixels);
+				gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, (color == FIC_RGB) ? GL_BGR : GL_BGRA, GL_UNSIGNED_BYTE, bits);
 			glDisable(GL_TEXTURE_2D);
-			SDL_FreeSurface(te2x);
+
 			loadedTextures.push_back(filename);
 			loadedTexturesNum.push_back(texture1);
 			ismat = true;
 			texture = texture1;
+			FreeImage_Unload(dib);
 			}
 		}
 	}

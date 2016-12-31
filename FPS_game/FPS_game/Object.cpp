@@ -43,6 +43,17 @@ void Object::draw()
 
 
 		dataPointer = &vertexIndices[materialsVertex[i].startIndex];
+		int tex = materials[materialsVertex[i].materialIndex].texture;
+		if(tex<0){
+			glDisable,(GL_TEXTURE_2D);
+			if (materialsVertex[i].faceFormat == 3) {
+				glDrawArrays(GL_TRIANGLES, materialsVertex[i].startIndex, (materialsVertex[i].size));
+			}
+			else if (materialsVertex[i].faceFormat == 4) {
+				glDrawArrays(GL_QUADS, materialsVertex[i].startIndex, (materialsVertex[i].size));
+			}
+			glEnable(GL_TEXTURE_2D);
+		}else{
 		glBindTexture(GL_TEXTURE_2D, materials[materialsVertex[i].materialIndex].texture);
 
 		if (materialsVertex[i].faceFormat == 3) {
@@ -50,6 +61,7 @@ void Object::draw()
 		}
 		else if (materialsVertex[i].faceFormat == 4) {
 			glDrawArrays(GL_QUADS, materialsVertex[i].startIndex, (materialsVertex[i].size));
+		}
 		}
 	}
 	glDisableClientState(GL_VERTEX_ARRAY);

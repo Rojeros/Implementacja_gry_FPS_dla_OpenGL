@@ -171,7 +171,7 @@ void Map::initTerrain(char *fileName, float heightReducingFactor)
 	glEndList();
 
 	glEnable(GL_TEXTURE_2D);
-	
+	//TODO: change to freeimage
 	SDL_Surface * tex= SDL_LoadBMP("data/grass2.bmp");
 	tex = SDL_ConvertSurfaceFormat(tex, SDL_PIXELFORMAT_RGB24, 0);
 	glGenTextures(1, (GLuint*)&terrain->terrainTexture);
