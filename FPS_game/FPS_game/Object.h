@@ -6,6 +6,7 @@
 #include <vector>
 #include "Vector.h"
 #include "CollisionPlane.h"
+
 /// <summary>	A material. </summary>
 struct material {
 	/// <summary>	The name. </summary>
@@ -42,21 +43,20 @@ class Object
 {
 public:
 	Object();
+	Object(int isMaterialTextureLoaded);
 	~Object();
-	void draw();
+	void draw(std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex);
+
 
 std::vector<float> vetrexes;
 std::vector<float> normals;
 std::vector<float> texturecoordinate;
-
 std::vector<GLuint> vertexIndices;
-		
-std::vector<materialVertex> materialsVertex;
-		
-std::vector<material> materials;
 std::vector<CollisionPlane> collplane;
+bool isMaterialsLoaded;
+
 	
-private:
+
 
 };
 

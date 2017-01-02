@@ -1,29 +1,30 @@
 #include "LevelLoad.h"
 #include "FreeImage.h"
 //TODO: add errors
- material::material(const char* na, float al, float n, float ni2, float* d, float* a, float* s, int i, int t)
- {
-	 name = na;
-	 alpha = al;
-	 ni = ni2;
-	 ns = n;
-	 dif[0] = d[0];
-	 dif[1] = d[1];
-	 dif[2] = d[2];
+material::material(const char* na, float al, float n, float ni2, float* d, float* a, float* s, int i, int t)
+{
+	name = na;
+	alpha = al;
+	ni = ni2;
+	ns = n;
+	dif[0] = d[0];
+	dif[1] = d[1];
+	dif[2] = d[2];
 
-	 amb[0] = a[0];
-	 amb[1] = a[1];
-	 amb[2] = a[2];
+	amb[0] = a[0];
+	amb[1] = a[1];
+	amb[2] = a[2];
 
-	 spec[0] = s[0];
-	 spec[1] = s[1];
-	 spec[2] = s[2];
+	spec[0] = s[0];
+	spec[1] = s[1];
+	spec[2] = s[2];
 
-	 illum = i;
-	 texture = t;
- }
+	illum = i;
+	texture = t;
+}
 LevelLoad::LevelLoad()
 {
+
 }
 int LevelLoad::parseMaterialFile(char* line, std::string path, std::vector<std::string>* tmp)
 {
@@ -44,7 +45,7 @@ int LevelLoad::parseMaterialFile(char* line, std::string path, std::vector<std::
 		tmp->push_back(c);
 	}
 }
-int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * newObject)
+int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * newObject, std::vector<material> & mainMaterial)
 {
 
 	std::vector<std::string> tmp;
@@ -65,7 +66,7 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 	strcpy_s(filename, "\0");
 
 	//parse file data
-	for (int i = 0; i<tmp.size(); i++)
+	for (int i = 0; i < tmp.size(); i++)
 	{
 		//comment
 		if (tmp[i][0] == '#')
@@ -77,13 +78,14 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 			if (ismat)
 			{
 
+
 				if (strcmp(filename, "\0") != 0 && strcmp(filename, "collision") != 0)
 				{
-					newObject->materials.push_back( material(name, alpha, ns, ni, dif, amb, spec, illum, texture));
+					mainMaterial.push_back(material(name, alpha, ns, ni, dif, amb, spec, illum, texture));
 					strcpy_s(filename, "\0");
 				}
 				else {
-					newObject->materials.push_back( material(name, alpha, ns, ni, dif, amb, spec, illum, -1));
+					mainMaterial.push_back(material(name, alpha, ns, ni, dif, amb, spec, illum, -1));
 				}
 			}
 
@@ -129,7 +131,7 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 		}
 		else if (tmp[i][0] == 'm' && tmp[i][1] == 'a')
 		{
-			
+
 			sscanf_s(tmp[i].c_str(), "map_Kd %s", filename, 200);
 			bool l = 0;
 			char c[100];
@@ -138,86 +140,86 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 			std::string filename2 = path + name;
 
 
-			for (int i = 0; i<loadedTextures.size(); i++)
+			for (int i = 0; i < loadedTextures.size(); i++)
 				if (loadedTextures[i] == name)
 				{
 					texture = loadedTexturesNum[i];
 					l = 1;
 					break;
 				}
-			if (l == 0){
-				
-			GLuint texture1;
-			glEnable(GL_TEXTURE_2D);
-			//image format
-			FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
-			//pointer to the image, once loaded
-			FIBITMAP *dib(0);
-			//pointer to the image data
-			BYTE* bits(0);
-			//image width and height
-			unsigned int width(0), height(0);
-			//OpenGL's image ID to map to
-	
+			if (l == 0) {
 
-			//check the file signature and deduce its format
-			fif = FreeImage_GetFileType(filename2.c_str(), 0);
-			//if still unknown, try to guess the file format from the file extension
-			if (fif == FIF_UNKNOWN)
-				fif = FreeImage_GetFIFFromFilename(filename2.c_str());
-			//if still unkown, return failure
-			if (fif == FIF_UNKNOWN) {
-				std::cout << "image loading error\n";
-				return false;
-			}
-			//std::cout << "FIF " << fif << " " << filename << std::endl;
+				GLuint texture1;
+				glEnable(GL_TEXTURE_2D);
+				//image format
+				FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+				//pointer to the image, once loaded
+				FIBITMAP *dib(0);
+				//pointer to the image data
+				BYTE* bits(0);
+				//image width and height
+				unsigned int width(0), height(0);
+				//OpenGL's image ID to map to
 
-			//check that the plugin has reading capabilities and load the file
-			if (FreeImage_FIFSupportsReading(fif))
-				dib = FreeImage_Load(fif, filename2.c_str());
-			//if the image failed to load, return failure
-			if (!dib) {
-				std::cout << "image loading error\n";
-				return false;
-			}
-			//retrieve the image data
-			bits = FreeImage_GetBits(dib);
-			//get the image width and height
-			width = FreeImage_GetWidth(dib);
-			height = FreeImage_GetHeight(dib);
-		
-			FREE_IMAGE_COLOR_TYPE color = FreeImage_GetColorType(dib);
-			if (color != FIC_RGB && color != FIC_RGBALPHA)
-			{
-				FreeImage_Unload(dib);
-				std::cout << "image loading error\n";
-				return false;
-			}
-			//if this somehow one of these failed (they shouldn't), return failure
-		//	std::cout << (bits == 0) << std::endl;
-			if ((bits == 0) || (width == 0) || (height == 0)) {
-				std::cout << "image loading error\n";
-				return false;
-			}
-			//std::cout << width << " " << height << std::endl;
-			//if this texture ID is in use, unload the current texture
 
-			glGenTextures(1, &texture1);
-			glBindTexture(GL_TEXTURE_2D, texture1);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				//check the file signature and deduce its format
+				fif = FreeImage_GetFileType(filename2.c_str(), 0);
+				//if still unknown, try to guess the file format from the file extension
+				if (fif == FIF_UNKNOWN)
+					fif = FreeImage_GetFIFFromFilename(filename2.c_str());
+				//if still unkown, return failure
+				if (fif == FIF_UNKNOWN) {
+					std::cout << "image loading error\n";
+					return false;
+				}
+				//std::cout << "FIF " << fif << " " << filename << std::endl;
+
+				//check that the plugin has reading capabilities and load the file
+				if (FreeImage_FIFSupportsReading(fif))
+					dib = FreeImage_Load(fif, filename2.c_str());
+				//if the image failed to load, return failure
+				if (!dib) {
+					std::cout << "image loading error\n";
+					return false;
+				}
+				//retrieve the image data
+				bits = FreeImage_GetBits(dib);
+				//get the image width and height
+				width = FreeImage_GetWidth(dib);
+				height = FreeImage_GetHeight(dib);
+
+				FREE_IMAGE_COLOR_TYPE color = FreeImage_GetColorType(dib);
+				if (color != FIC_RGB && color != FIC_RGBALPHA)
+				{
+					FreeImage_Unload(dib);
+					std::cout << "image loading error\n";
+					return false;
+				}
+				//if this somehow one of these failed (they shouldn't), return failure
+			//	std::cout << (bits == 0) << std::endl;
+				if ((bits == 0) || (width == 0) || (height == 0)) {
+					std::cout << "image loading error\n";
+					return false;
+				}
+				//std::cout << width << " " << height << std::endl;
+				//if this texture ID is in use, unload the current texture
+
+				glGenTextures(1, &texture1);
+				glBindTexture(GL_TEXTURE_2D, texture1);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 				gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, (color == FIC_RGB) ? GL_BGR : GL_BGRA, GL_UNSIGNED_BYTE, bits);
-			glDisable(GL_TEXTURE_2D);
+				glDisable(GL_TEXTURE_2D);
 
-			loadedTextures.push_back(filename);
-			loadedTexturesNum.push_back(texture1);
-			ismat = true;
-			texture = texture1;
-			FreeImage_Unload(dib);
+				loadedTextures.push_back(filename);
+				loadedTexturesNum.push_back(texture1);
+				ismat = true;
+				texture = texture1;
+				FreeImage_Unload(dib);
 			}
 		}
 	}
@@ -225,16 +227,16 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 	{
 		if (strcmp(filename, "\0") != 0)
 		{
-			newObject->materials.push_back(material(name, alpha, ns, ni, dif, amb, spec, illum, texture));
+			mainMaterial.push_back(material(name, alpha, ns, ni, dif, amb, spec, illum, texture));
 		}
 		else {
-			newObject->materials.push_back( material(name, alpha, ns, ni, dif, amb, spec, illum, -1));
+			mainMaterial.push_back(material(name, alpha, ns, ni, dif, amb, spec, illum, -1));
 		}
 	}
 
 	return 1;
 }
- Object * LevelLoad::loadFromFile(std::string path)
+Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex)
 {
 	//temp array for create buffer of normal's vertex
 	std::vector<vector3d > normalsTemp;
@@ -244,7 +246,7 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 	std::vector<vector3d > vetrexesTmp;
 
 	//new 3d object from file
-	Object * newObject= new Object();
+	Object * newObject = new Object(isTexturFileIsLoad);
 
 	//buffer for line from file
 	char buf[10000];
@@ -259,7 +261,7 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 	int lastMaterial = -1;
 	//number of texture size
 	int sizeOfMaterialIndex = 0;
-	
+
 	std::ifstream in(path.c_str());
 	if (!in.is_open())
 	{
@@ -273,13 +275,14 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 		//commnert
 		if (buf[0] == '#') {
 
-		}else if (buf[0] == 'v' && buf[1] == ' ')	//add to vertex buffer
+		}
+		else if (buf[0] == 'v' && buf[1] == ' ')	//add to vertex buffer
 		{
 			float tmpx, tmpy, tmpz;
 			sscanf_s(buf, "v %f %f %f", &tmpx, &tmpy, &tmpz);
 			vetrexesTmp.push_back(vector3d(tmpx, tmpy, tmpz));
 
-			
+
 		}
 		else if (buf[0] == 'v' && buf[1] == 'n')	//add to normals vertexes buffer
 		{
@@ -292,173 +295,176 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 		}
 		else if (buf[0] == 'f')	//add face
 		{
-		
-			if (coll && newObject->collplane.size() != NULL)	//if collisionplane is exist in file, add to structure
+
+			if (coll)	//if collisionplane is exist in file, add to structure
 			{
 				int v[4], n[4];
 				sscanf_s(buf, "f %d//%d %d//%d %d//%d %d//%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2], &v[3], &n[3]);
-				newObject->collplane.push_back(CollisionPlane(newObject->normals[n[0] - 1], newObject->normals[n[1] - 1], newObject->normals[n[2] - 1],
-					newObject->vetrexes[3*(v[0] - 1)], newObject->vetrexes[3 * (v[0] - 1)+1], newObject->vetrexes[3 * (v[0] - 1)+2],
-					newObject->vetrexes[3 * (v[1] - 1)], newObject->vetrexes[3 * (v[1] - 1) + 1], newObject->vetrexes[3 * (v[1] - 1) + 2],
-					newObject->vetrexes[3 * (v[2] - 1)], newObject->vetrexes[3 * (v[2] - 1) + 1], newObject->vetrexes[3 * (v[2] - 1) + 2],
-					newObject->vetrexes[3 * (v[3] - 1)], newObject->vetrexes[3 * (v[3] - 1) + 1], newObject->vetrexes[3 * (v[3] - 1) + 2]));
+				newObject->collplane.push_back(
+					CollisionPlane(normalsTemp[n[0] - 1].getX(), normalsTemp[n[0] - 1].getY(), normalsTemp[n[0] - 1].getZ(),
+						vetrexesTmp[v[0] - 1].getX(), vetrexesTmp[v[0] - 1].getY(), vetrexesTmp[v[0] - 1].getZ(),
+						vetrexesTmp[v[1] - 1].getX(), vetrexesTmp[v[1] - 1].getY(), vetrexesTmp[v[1] - 1].getZ(),
+						vetrexesTmp[v[2] - 1].getX(), vetrexesTmp[v[2] - 1].getY(), vetrexesTmp[v[2] - 1].getZ(),
+						vetrexesTmp[v[3] - 1].getX(), vetrexesTmp[v[3] - 1].getY(), vetrexesTmp[v[3] - 1].getZ()));
+
 
 			}
 			else
 			{
-			
-			std::string line;
-			line = buf;
-			//check format of face
-			//4 faces format
-			if (std::count(line.begin(), line.end(), ' ') == 4)
-			{
-				//if vertex and normal faces
-				if (line.find("//") != std::string::npos)
+
+				std::string line;
+				line = buf;
+				//check format of face
+				//4 faces format
+				if (std::count(line.begin(), line.end(), ' ') == 4)
 				{
-					int v[4],n[4];
-					sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d %d//%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2], &v[3], &n[3]);
-					newObject->vertexIndices.push_back(v[0] - 1);
-					newObject->vertexIndices.push_back(v[1] - 1);
-					newObject->vertexIndices.push_back(v[2] - 1);
-					newObject->vertexIndices.push_back(v[3] - 1);
+					//if vertex and normal faces
+					if (line.find("//") != std::string::npos)
+					{
+						int v[4], n[4];
+						sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d %d//%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2], &v[3], &n[3]);
+						newObject->vertexIndices.push_back(v[0] - 1);
+						newObject->vertexIndices.push_back(v[1] - 1);
+						newObject->vertexIndices.push_back(v[2] - 1);
+						newObject->vertexIndices.push_back(v[3] - 1);
 
-					normalIndices.push_back(n[0] - 1);
-					normalIndices.push_back(n[1] - 1);
-					normalIndices.push_back(n[2] - 1);
-					normalIndices.push_back(n[3] - 1);
-
-				
-					//if texture is changed
-					if (lastMaterial != curmat) {
-						//add new info about texture and his place
-						newObject->materialsVertex.push_back(materialVertex( changeMaterialIndex,curmat,4));
-						lastMaterial = curmat;
-					}	
-					//increment texture place
-					changeMaterialIndex+=4;
-
-				}
-				//if vertex, texture and normal faces
-				else if (line.find("/") != std::string::npos)
-				{
-					int a, b, c, d, e, f, g;
-					int t[4];
-					int n[4];
-					sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d", 
-														&a, &t[0], &n[0], 
-														&c, &t[1], &n[1], 
-														&d, &t[2], &n[2], 
-														&e, &t[3], &n[3]);
-					newObject->vertexIndices.push_back(a-1);
-					newObject->vertexIndices.push_back(c-1);
-					newObject->vertexIndices.push_back(d-1);
-					newObject->vertexIndices.push_back(e-1);
-					
-					normalIndices.push_back(n[0]-1);
-					normalIndices.push_back(n[1]-1);
-					normalIndices.push_back(n[2]-1);
-					normalIndices.push_back(n[3]-1);
-
-					textureIndices.push_back(t[0] - 1);
-					textureIndices.push_back(t[1] - 1);
-					textureIndices.push_back(t[2] - 1);
-					textureIndices.push_back(t[3] - 1);
+						normalIndices.push_back(n[0] - 1);
+						normalIndices.push_back(n[1] - 1);
+						normalIndices.push_back(n[2] - 1);
+						normalIndices.push_back(n[3] - 1);
 
 
-					if (lastMaterial != curmat) {
-						newObject->materialsVertex.push_back(materialVertex(changeMaterialIndex, curmat,4));
-						lastMaterial = curmat;
+						//if texture is changed
+						if (lastMaterial != curmat) {
+							//add new info about texture and his place
+							mainMaterialsVertex.push_back(materialVertex(changeMaterialIndex, curmat, 4));
+							lastMaterial = curmat;
+						}
+						//increment texture place
+						changeMaterialIndex += 4;
+
 					}
-					changeMaterialIndex+=4;
+					//if vertex, texture and normal faces
+					else if (line.find("/") != std::string::npos)
+					{
+						int a, b, c, d, e, f, g;
+						int t[4];
+						int n[4];
+						sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
+							&a, &t[0], &n[0],
+							&c, &t[1], &n[1],
+							&d, &t[2], &n[2],
+							&e, &t[3], &n[3]);
 
-				
-				}
-				// only vertex face
-				else {
-					int a, b, c, d, e, f, g;
-					sscanf_s(line.c_str(), "f %d %d %d %d", &a, &b, &c, &d);
-					newObject->vertexIndices.push_back((int)a-1);
-					newObject->vertexIndices.push_back((int)c-1);
-					newObject->vertexIndices.push_back((int)d-1);
+						newObject->vertexIndices.push_back(a - 1);
+						newObject->vertexIndices.push_back(c - 1);
+						newObject->vertexIndices.push_back(d - 1);
+						newObject->vertexIndices.push_back(e - 1);
 
-					if (lastMaterial != curmat) {
-						newObject->materialsVertex.push_back(materialVertex(changeMaterialIndex, curmat,3));
-						lastMaterial = curmat;
+						normalIndices.push_back(n[0] - 1);
+						normalIndices.push_back(n[1] - 1);
+						normalIndices.push_back(n[2] - 1);
+						normalIndices.push_back(n[3] - 1);
+
+						textureIndices.push_back(t[0] - 1);
+						textureIndices.push_back(t[1] - 1);
+						textureIndices.push_back(t[2] - 1);
+						textureIndices.push_back(t[3] - 1);
+
+
+						if (lastMaterial != curmat) {
+							mainMaterialsVertex.push_back(materialVertex(changeMaterialIndex, curmat, 4));
+							lastMaterial = curmat;
+						}
+						changeMaterialIndex += 4;
+
+
 					}
-					changeMaterialIndex+=3;
-				
-				}
-			}
-			//3 format faces
-			else
-			{
-				//vertex and normal faces
-				if (line.find("//") != std::string::npos)
-				{
-					int a, b, c, d, e, f, g;
-					sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d", &a, &b, &c, &e, &d, &f);
-					newObject->vertexIndices.push_back((int)a-1);
-					newObject->vertexIndices.push_back((int)c-1);
-					newObject->vertexIndices.push_back((int)d-1);
+					// only vertex face
+					else {
+						int a, b, c, d, e, f, g;
+						sscanf_s(line.c_str(), "f %d %d %d %d", &a, &b, &c, &d);
+						newObject->vertexIndices.push_back((int)a - 1);
+						newObject->vertexIndices.push_back((int)c - 1);
+						newObject->vertexIndices.push_back((int)d - 1);
 
-					normalIndices.push_back(b - 1);
-					normalIndices.push_back( e - 1);
-					normalIndices.push_back( f - 1);
+						if (lastMaterial != curmat) {
+							mainMaterialsVertex.push_back(materialVertex(changeMaterialIndex, curmat, 3));
+							lastMaterial = curmat;
+						}
+						changeMaterialIndex += 3;
 
-
-					if (lastMaterial != curmat) {
-						newObject->materialsVertex.push_back(materialVertex(changeMaterialIndex, curmat,3));
-						lastMaterial = curmat;
 					}
-					changeMaterialIndex+=3;
-			
 				}
-				else if (line.find("/") != std::string::npos) //all faces attribute
+				//3 format faces
+				else
 				{
-					int a, b, c, d, e, f, g;
-					int t[3];
-					sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
-						&a, &t[0], &b,
-						&c, &t[1], &e, 
-						&d, &t[2], &f);
+					//vertex and normal faces
+					if (line.find("//") != std::string::npos)
+					{
+						int a, b, c, d, e, f, g;
+						sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d", &a, &b, &c, &e, &d, &f);
+						newObject->vertexIndices.push_back((int)a - 1);
+						newObject->vertexIndices.push_back((int)c - 1);
+						newObject->vertexIndices.push_back((int)d - 1);
 
-					newObject->vertexIndices.push_back((int)a-1);
-					newObject->vertexIndices.push_back((int)c-1);
-					newObject->vertexIndices.push_back((int)d-1);
-
-						normalIndices.push_back(b-1);
+						normalIndices.push_back(b - 1);
 						normalIndices.push_back(e - 1);
 						normalIndices.push_back(f - 1);
-						
-						textureIndices.push_back(t[0]-1);
+
+
+						if (lastMaterial != curmat) {
+							mainMaterialsVertex.push_back(materialVertex(changeMaterialIndex, curmat, 3));
+							lastMaterial = curmat;
+						}
+						changeMaterialIndex += 3;
+
+					}
+					else if (line.find("/") != std::string::npos) //all faces attribute
+					{
+						int a, b, c, d, e, f, g;
+						int t[3];
+						sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d",
+							&a, &t[0], &b,
+							&c, &t[1], &e,
+							&d, &t[2], &f);
+
+						newObject->vertexIndices.push_back((int)a - 1);
+						newObject->vertexIndices.push_back((int)c - 1);
+						newObject->vertexIndices.push_back((int)d - 1);
+
+						normalIndices.push_back(b - 1);
+						normalIndices.push_back(e - 1);
+						normalIndices.push_back(f - 1);
+
+						textureIndices.push_back(t[0] - 1);
 						textureIndices.push_back(t[1] - 1);
 						textureIndices.push_back(t[2] - 1);
 
 
 						if (lastMaterial != curmat) {
-							newObject->materialsVertex.push_back(materialVertex(changeMaterialIndex, curmat,3));
+							mainMaterialsVertex.push_back(materialVertex(changeMaterialIndex, curmat, 3));
 							lastMaterial = curmat;
 						}
-						changeMaterialIndex+=3;
-				
-				}
-				else {	//only vertex face
-					int a, b, c, d, e, f, g;
-					sscanf_s(line.c_str(), "f %d %d %d", &a, &b, &c);
-					newObject->vertexIndices.push_back((int)a-1);
-					newObject->vertexIndices.push_back((int)b-1);
-					newObject->vertexIndices.push_back((int)c-1);
+						changeMaterialIndex += 3;
 
-
-					if (lastMaterial != curmat) {
-						newObject->materialsVertex.push_back(materialVertex(changeMaterialIndex, curmat,3));
-						lastMaterial = curmat;
 					}
-					changeMaterialIndex+=3;
-				
+					else {	//only vertex face
+						int a, b, c, d, e, f, g;
+						sscanf_s(line.c_str(), "f %d %d %d", &a, &b, &c);
+						newObject->vertexIndices.push_back((int)a - 1);
+						newObject->vertexIndices.push_back((int)b - 1);
+						newObject->vertexIndices.push_back((int)c - 1);
+
+
+						if (lastMaterial != curmat) {
+							mainMaterialsVertex.push_back(materialVertex(changeMaterialIndex, curmat, 3));
+							lastMaterial = curmat;
+						}
+						changeMaterialIndex += 3;
+
+					}
 				}
-			}
 			}
 		}
 		else if (buf[0] == 'u' && (buf[1] == 's' && buf[2] == 'e'))	//bind material and texture
@@ -473,19 +479,23 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 			else {	//no, material
 				coll = false;
 				//find texture to bind
-				for (int i = 0; i<newObject->materials.size(); i++)
+				for (int i = 0; i < mainMaterial.size(); i++)
 				{
-					if (strcmp(newObject->materials[i].name.c_str(), tmp) == 0)
+					if (strcmp(mainMaterial[i].name.c_str(), tmp) == 0)
 					{
 						curmat = i;
 						break;
 					}
 				}
 			}
-			
-		}else if (buf[0] == 'm' && buf[1] == 't' && buf[2] == 'l' && buf[3] == 'l')	//add new material
+
+		}
+		else if (buf[0] == 'm' && buf[1] == 't' && buf[2] == 'l' && buf[3] == 'l')	//add new material
 		{
-			parseMaterial(buf, path,newObject);
+			if (newObject->isMaterialsLoaded == false) {
+				parseMaterial(buf, path, newObject, mainMaterial);
+
+			}
 		}
 
 		else if (buf[0] == 'v' && buf[1] == 't')	//add texture coordinate
@@ -494,7 +504,8 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 			line = buf;
 			float u, v;
 			sscanf_s(line.c_str(), "vt %f %f", &u, &v);
-			textureTemp.push_back(vector2D(u,v));
+			textureTemp.push_back(vector2D(u, v));
+			coll = false;
 
 		}
 	}
@@ -508,7 +519,7 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 	for (int i = 0; i < textureIndices.size(); i++) {
 		newObject->texturecoordinate.push_back(textureTemp[textureIndices[i]].x);
 		newObject->texturecoordinate.push_back(textureTemp[textureIndices[i]].z);
-	
+
 	}
 	//buid vertex buffer
 	for (int i = 0; i < newObject->vertexIndices.size(); i++) {
@@ -518,19 +529,64 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 	}
 
 	//calculate count of vertexs to bind texture 
-	if (newObject->materialsVertex.size()>1) {
-		newObject->materialsVertex[0].size = newObject->materialsVertex[1].startIndex;
-		for (int i = 1; i <newObject->materialsVertex.size() - 1; i++)
+	if (mainMaterialsVertex.size() > 1) {
+		mainMaterialsVertex[0].size = mainMaterialsVertex[1].startIndex;
+		for (int i = 1; i < mainMaterialsVertex.size() - 1; i++)
 		{
-			newObject->materialsVertex[i].size = newObject->materialsVertex[i + 1].startIndex - newObject->materialsVertex[i].startIndex;
+			mainMaterialsVertex[i].size = mainMaterialsVertex[i + 1].startIndex - mainMaterialsVertex[i].startIndex;
 		}
-		newObject->materialsVertex[newObject->materialsVertex.size() - 1].size = newObject->vertexIndices.size() - newObject->materialsVertex[newObject->materialsVertex.size() - 1].startIndex;
+		//last object
+		mainMaterialsVertex[mainMaterialsVertex.size() - 1].size = newObject->vertexIndices.size() - mainMaterialsVertex[mainMaterialsVertex.size() - 1].startIndex;
 	}
 	else {
-		newObject->materialsVertex[0].size = newObject->vertexIndices.size() - newObject->materialsVertex[0].startIndex;
+		if (newObject->isMaterialsLoaded == false) {
+			newObject->isMaterialsLoaded = true;
+			mainMaterialsVertex[0].size = newObject->vertexIndices.size() - mainMaterialsVertex[0].startIndex;
+		}
+
 	}
-	
+
+
+	normalIndices.clear();
+	textureIndices.clear();
+	loadedTextures.clear();
+	loadedTexturesNum.clear();
+
+
 	return newObject;
+}
+
+std::vector<Object*> LevelLoad::animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex)
+{
+
+	std::vector<Object*> anim;
+	struct stat buffer;
+	int i = 1;
+	bool stop = false;
+	if (stat(path.c_str(), &buffer) == 0) {
+		anim.push_back(loadFromFile(path, false, mainMaterial, mainMaterialsVertex));
+	}
+	else {
+		do {
+			std::string newpath = path;
+			int digits = (i > 0 ? (int)log10((double)i) + 1 : 1);
+			digits = 6 - digits;
+			for (int j = 0; j < digits; j++)
+				newpath += "0";
+			newpath += std::to_string(i) + ".obj";
+
+			if (stat(newpath.c_str(), &buffer) == 0) {
+				anim.push_back(loadFromFile(newpath, i != 1, mainMaterial, mainMaterialsVertex));
+				i++;
+
+			}
+			else {
+				stop = true;
+			}
+		} while (!stop);
+	}
+
+	return anim;
 }
 
 

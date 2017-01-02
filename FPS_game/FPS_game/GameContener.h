@@ -35,7 +35,9 @@ private:
 	int screen_height ;
 	int full_screen;
 	bool gameRunning;
-	Object * enemy;
+	std::vector<Object*> enemy;
+	std::vector<material> materials;
+	std::vector<materialVertex> materialsVertex;
 
 	bool SetOpenGLAttributes();
 	void PrintSDL_GL_Attributes();

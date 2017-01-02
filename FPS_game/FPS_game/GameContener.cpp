@@ -164,8 +164,12 @@ void GameContener::Render()
 
 	
 	glTranslatef(50, 12, -50);
-	
-	enemy->draw();
+	static int frame = 0;
+	enemy[frame]->draw(materials, materialsVertex);
+
+	frame++;
+	if (frame > 8)
+		frame = 0;
 
 
 	SDL_GL_SwapWindow(mainWindow);
@@ -256,7 +260,7 @@ void GameContener::StartEngine()
 	player = new Player();
 	map->initTerrain("data/heightMap.bmp",0.1);
 	LevelLoad lvl1;
-	enemy= lvl1.loadFromFile("data/dragon.obj");
+	enemy= lvl1.animation("data/1/MagmaElemental_1_", materials, materialsVertex);
 //	LevelLoad::vertexBuffer;
 	/* inicjujemy engine tutaj */
 	return;

@@ -6,7 +6,6 @@
 #include <gl\glu.h>
 
 #include <SDL.h>
-#include <GL\SDL_image.h>
 
 // this function taken from SDL documentation
 // http://www.libsdl.org/cgi/docwiki.cgi/Introduction_to_SDL_Video#getpixel
