@@ -2,6 +2,7 @@
 #include "Player.h"
 #include <iostream>
 #include <vector>
+
 GLfloat ambient_light[4] =
 {
 	0.2, 0.2, 0.2, 1.0
@@ -24,7 +25,7 @@ int GameContener::Run()
 		ProcessEvents();
 		DoEngine();
 		Render();
-
+		fpsthink();
 	}
 
 }
@@ -52,6 +53,8 @@ bool GameContener::SetupRC()
 	//TODO: zmieniæ na koniec 800 na sdl_windowpos_centered
 	mainWindow = SDL_CreateWindow("FPS Game", 800, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, flags);
 
+
+	renderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED);
 	// Check that everything worked out okay
 	if (!mainWindow)
 	{
@@ -121,8 +124,8 @@ bool GameContener::SetupRC()
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection);
 	glMateriali(GL_FRONT, GL_SHININESS, 96);
 
-
-	
+	TTF_Init();
+	text = new GameUI(renderer, screen_width, screen_height, 32);
 
 
 
@@ -154,6 +157,12 @@ void GameContener::Render()
 
 	player->update(keys,map->getTerrainHeight(player->getX(),player->getZ()));
 
+
+
+
+
+
+
 	player->show();
 	//std::cout<<player->getCamera()->getLocation();
 
@@ -168,9 +177,15 @@ void GameContener::Render()
 	enemy[frame]->draw(materials, materialsVertex);
 
 	frame++;
-	if (frame > 8)
+	if (frame > 19)
 		frame = 0;
 
+
+
+	
+	SDL_Color color = { 255, 0, 0, 255 };
+	text->changeValues(0, 0, 0, 0, "0", "0.lvl0", framespersecond);
+	text->draw();
 
 	SDL_GL_SwapWindow(mainWindow);
 
@@ -189,6 +204,7 @@ bool GameContener::SetOpenGLAttributes()
 	// Turn on double buffering with a 24bit Z buffer.
 	// You may need to change this to 16 or 32 for your system
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
 
 	return true;
 }
@@ -263,6 +279,7 @@ void GameContener::StartEngine()
 	enemy= lvl1.animation("data/1/MagmaElemental_1_", materials, materialsVertex);
 //	LevelLoad::vertexBuffer;
 	/* inicjujemy engine tutaj */
+	SDL_Init(0);
 	return;
 }
 void GameContener::DoEngine()
@@ -288,7 +305,9 @@ void GameContener::QuitGame()
 	// Delete our OpengL context
 	SDL_GL_DeleteContext(mainContext);
 
+	SDL_DestroyRenderer(renderer);
 	// Destroy our window
+
 	SDL_DestroyWindow(mainWindow);
 
 	// Shutdown SDL 2
