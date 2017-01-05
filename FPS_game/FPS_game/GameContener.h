@@ -37,6 +37,7 @@ private:
 	int screen_height ;
 	int full_screen;
 	bool gameRunning;
+	bool gamePause;
 	std::vector<Object*> enemy;
 	std::vector<material> materials;
 	std::vector<materialVertex> materialsVertex;
@@ -49,7 +50,7 @@ private:
 	void HandleKeyDown(SDL_Keysym* keysym);
 	void HandleKeyUp(SDL_Keysym* keysym);
 	void MouseMotion(SDL_MouseMotionEvent * motion);
-	void MouseClick();
+	void MouseClick(SDL_MouseButtonEvent * click);
 	void ProcessEvents(void);
 	bool SetupRC();
 	void StartEngine();
@@ -84,7 +85,21 @@ private:
 		frametimelast = SDL_GetTicks();
 
 	}
+	void resizeWindow(int w, int h) {
+		glViewport(0, 0, w, h);// reset the viewport
+		glMatrixMode(GL_PROJECTION); // modify the projection matrix
+		glLoadIdentity();            // load an identity matrix into the projection matrix
+		glOrtho(0, w, 0, h, -1.0, 1.0); // create new projection matrix
 
+												 /// Important!!! You need to switch back to the model-view matrix
+												 /// or else your OpenGL calls are modifying the projection matrix!
+		glMatrixMode(GL_MODELVIEW); // return to the model matrix
+		glLoadIdentity();           // load an identity matrix into the model-view matrix
+
+									// OpenGL has now compensated for the resized window, and is ready to draw again.
+
+
+	}
 	void fpsthink() {
 
 		Uint32 frametimesindex;

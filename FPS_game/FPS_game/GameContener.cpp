@@ -5,7 +5,7 @@
 
 
 GLuint GameContener::TextureID;
-GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512),gameRunning(true)
+GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512),gameRunning(true), gamePause(false)
 {
 	map = new Map();
 }
@@ -19,11 +19,18 @@ int GameContener::Run()
 	fpsinit();
 	while (gameRunning)
 	{
-		WaitFrame(60);
-		ProcessEvents();
-		DoEngine();
+		while (!gamePause) {
+			WaitFrame(60);
+			ProcessEvents();
+			DoEngine();
+			Render();
+			fpsthink();
+		}
+		text->renderText("Pause", { 0,0,100 }, coordinates::CENTER, 0, 0);
 		Render();
-		fpsthink();
+		ProcessEvents();
+		
+		
 	}
 
 }
@@ -157,8 +164,6 @@ void GameContener::Render()
 	};
 	glEnd();
 
-	player->update(keys,map->getTerrainHeight(player->getX(),player->getZ()));
-
 
 
 
@@ -248,16 +253,23 @@ void GameContener::HandleKeyUp(SDL_Keysym* keysym)
 }
 void GameContener::MouseMotion(SDL_MouseMotionEvent * motion)
 {
+	if(!gamePause){
 	//std::cout<<motion->xrel<<"\n";
 	float dx= motion->x - screen_width / 2;
-	float dy = motion->y - screen_width / 2;
+	float dy = motion->y - screen_height / 2;
 	SDL_WarpMouseInWindow(mainWindow, (screen_width / 2), (screen_height / 2));
 	player->lookAt(dx, dy);
 	//int dy = motion->y - screen_height / 2;
-
+	}
 }
-void GameContener::MouseClick()
+void GameContener::MouseClick(SDL_MouseButtonEvent * click)
 {
+	SDL_DisplayMode *mode= new SDL_DisplayMode();
+	mode->format = SDL_PIXELFORMAT_RGB24;
+	mode->w = 1920;
+	mode->h = 1080;
+	mode->refresh_rate = 60;
+	SDL_SetWindowDisplayMode(mainWindow, mode);
 }
 void GameContener::ProcessEvents(void)
 {
@@ -279,30 +291,94 @@ void GameContener::ProcessEvents(void)
 		case SDL_MOUSEMOTION:
 			MouseMotion(&event.motion);
 			break;
+		case SDL_MOUSEBUTTONDOWN:
+			MouseClick(&event.button);
+			break;
 		case SDL_QUIT:
 			QuitGame();
 			break;
 		}
+		if (event.type == SDL_WINDOWEVENT) {
+			switch (event.window.event) {
+			case SDL_WINDOWEVENT_SHOWN:
+				SDL_Log("Window %d shown", event.window.windowID);
+				break;
+			case SDL_WINDOWEVENT_HIDDEN:
+				SDL_Log("Window %d hidden", event.window.windowID);
+				gamePause = true;
+				break;
+			case SDL_WINDOWEVENT_EXPOSED:
+				SDL_Log("Window %d exposed", event.window.windowID);
+				gamePause = false;
+				break;
+			case SDL_WINDOWEVENT_MOVED:
+				SDL_Log("Window %d moved to %d,%d",
+					event.window.windowID, event.window.data1,
+					event.window.data2);
+				break;
+			case SDL_WINDOWEVENT_RESIZED:
+				SDL_Log("Window %d resized to %dx%d",
+					event.window.windowID, event.window.data1,
+					event.window.data2);
+				resizeWindow(event.window.data1, event.window.data2);
+				screen_width = event.window.data1;
+				screen_height = event.window.data2;
 
+				break;
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+				SDL_Log("Window %d size changed to %dx%d",
+					event.window.windowID, event.window.data1,
+					event.window.data2);
+
+				break;
+			case SDL_WINDOWEVENT_MINIMIZED:
+				SDL_Log("Window %d minimized", event.window.windowID);
+				break;
+			case SDL_WINDOWEVENT_MAXIMIZED:
+				SDL_Log("Window %d maximized", event.window.windowID);
+				break;
+			case SDL_WINDOWEVENT_RESTORED:
+				SDL_Log("Window %d restored", event.window.windowID);
+				break;
+			case SDL_WINDOWEVENT_ENTER:
+				SDL_Log("Mouse entered window %d",
+					event.window.windowID);
+				break;
+			case SDL_WINDOWEVENT_LEAVE:
+				SDL_Log("Mouse left window %d", event.window.windowID);
+				break;
+			case SDL_WINDOWEVENT_FOCUS_GAINED:
+				SDL_Log("Window %d gained keyboard focus",
+					event.window.windowID);
+				break;
+			case SDL_WINDOWEVENT_FOCUS_LOST:
+				SDL_Log("Window %d lost keyboard focus",
+					event.window.windowID);
+				gamePause = true;
+				break;
+
+			}
+		}
 	}
 
 	return;
 }
 void GameContener::StartEngine()
 {
+	SDL_Init(0);
 	player = new Player();
 	map->initTerrain("data/heightMap.bmp",0.1);
 	LevelLoad lvl1;
-	enemy= lvl1.animation("data/2/Tree.obj", materials, materialsVertex);
-//	LevelLoad::vertexBuffer;
-	/* inicjujemy engine tutaj */
-	SDL_Init(0);
+	enemy= lvl1.animation("data/2/gun/Handgun_Game_Cycles_000001.obj", materials, materialsVertex);
+
+
 	return;
 }
 void GameContener::DoEngine()
 {
+	player->update(keys, map->getTerrainHeight(player->getX(), player->getZ()));
 
-	/* engine tutaj */
+
 	return;
 }
 void GameContener::WaitFrame(int fps)
@@ -331,6 +407,7 @@ void GameContener::QuitGame()
 	SDL_Quit(); 
 	//TODO: zrobiæ zrzut gry
 	gameRunning = false;
+	gamePause = true;
 }
 void GameContener::CheckSDLError(int line = -1)
 {
