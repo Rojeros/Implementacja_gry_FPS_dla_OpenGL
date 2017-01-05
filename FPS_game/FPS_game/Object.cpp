@@ -23,17 +23,22 @@ void Object::draw(std::vector<material> & mainMaterial, std::vector<materialVert
 	glEnable(GL_TEXTURE_2D);
 	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
+	
+	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_VERTEX_ARRAY);
+
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, vboId);
+
+//	glVertexPointer(3, GL_FLOAT, 0, vetrexes.data());
+//	glNormalPointer(GL_FLOAT, 0, normals.data());
+//	glTexCoordPointer(2, GL_FLOAT, 0, texturecoordinate.data());
 
 
-	glVertexPointer(3, GL_FLOAT, 0, vetrexes.data());
-	glNormalPointer(GL_FLOAT, 0, normals.data());
-	glTexCoordPointer(2, GL_FLOAT, 0, texturecoordinate.data());
-
-	GLuint * dataPointer;
-
+	glVertexPointer(3, GL_FLOAT, 0, 0);
+	glNormalPointer(GL_FLOAT, 0, (void*)(vetrexes.size()*sizeof(float)));
+	glTexCoordPointer(2, GL_FLOAT, 0, (void*)(vetrexes.size()*sizeof(float)+normals.size()*sizeof(float)));
+//
 	for (int i = 0; i < mainMaterialsVertex.size(); i++) {
 
 		float diffuse[] = { mainMaterial[mainMaterialsVertex[i].materialIndex].dif[0],mainMaterial[mainMaterialsVertex[i].materialIndex].dif[1],mainMaterial[mainMaterialsVertex[i].materialIndex].dif[2],1.0 };
@@ -45,7 +50,7 @@ void Object::draw(std::vector<material> & mainMaterial, std::vector<materialVert
 		glMaterialf(GL_FRONT, GL_SHININESS, mainMaterial[mainMaterialsVertex[i].materialIndex].ns);
 		glColor3f(diffuse[0], diffuse[1], diffuse[2]);
 	
-		dataPointer = &vertexIndices[mainMaterialsVertex[i].startIndex];
+
 		int tex = mainMaterial[mainMaterialsVertex[i].materialIndex].texture;
 		if (tex < 0) {
 			glDisable(GL_TEXTURE_2D);

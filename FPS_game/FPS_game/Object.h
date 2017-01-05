@@ -47,7 +47,7 @@ public:
 	~Object();
 	void draw(std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex);
 
-
+GLuint vboId;
 std::vector<float> vetrexes;
 std::vector<float> normals;
 std::vector<float> texturecoordinate;

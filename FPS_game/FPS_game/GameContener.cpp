@@ -173,7 +173,7 @@ void GameContener::Render()
 	
 	glTranslatef(50, 12, -50);
 	static int frame = 0;
-	//enemy[frame]->draw(materials, materialsVertex);
+	enemy[frame]->draw(materials, materialsVertex);
 
 
 	glTranslatef(30, 0, 0);
@@ -191,7 +191,7 @@ void GameContener::Render()
 	//glTranslatef(30, 0, 0);
 	//enemy[frame]->draw(materials, materialsVertex);
 
-	frame++;
+	//frame++;
 	if (frame > 19)
 		frame = 0;
 
@@ -201,7 +201,7 @@ void GameContener::Render()
 	//SDL_Color color = { 255, 0, 0, 255 };
 	text->changeValues(player->getHealth(), player->getEnergy(), 0, 0, player->getPoints(), "0", "0.lvl0", framespersecond);
 	text->draw();
-	std::cout << framespersecond << "\n";
+//	std::cout << framespersecond << "\n";
 	SDL_GL_SwapWindow(mainWindow);
 
 	
@@ -293,7 +293,7 @@ void GameContener::StartEngine()
 	player = new Player();
 	map->initTerrain("data/heightMap.bmp",0.1);
 	LevelLoad lvl1;
-	enemy= lvl1.animation("data/1/MagmaElemental_1_", materials, materialsVertex);
+	enemy= lvl1.animation("data/2/Tree.obj", materials, materialsVertex);
 //	LevelLoad::vertexBuffer;
 	/* inicjujemy engine tutaj */
 	SDL_Init(0);

@@ -1,6 +1,7 @@
 #include "LevelLoad.h"
 #include "FreeImage.h"
 //TODO: add errors
+
 material::material(const char* na, float al, float n, float ni2, float* d, float* a, float* s, int i, int t)
 {
 	name = na;
@@ -552,6 +553,17 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 	loadedTextures.clear();
 	loadedTexturesNum.clear();
 
+
+	glGenBuffersARB(1, &newObject->vboId);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, newObject->vboId);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, (newObject->vetrexes.size()* sizeof(float) + newObject->normals.size()* sizeof(float)+newObject->texturecoordinate.size()* sizeof(float)), 0, GL_STATIC_DRAW_ARB);
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 0, newObject->vetrexes.size()* sizeof(float), newObject->vetrexes.data());                             // copy vertices starting from 0 offest
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, newObject->vetrexes.size()* sizeof(float), newObject->normals.size()* sizeof(float), newObject->normals.data());                // copy normals after vertices
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 
+		newObject->vetrexes.size()* sizeof(float) + newObject->normals.size()* sizeof(float), 
+		newObject->texturecoordinate.size()* sizeof(float), newObject->texturecoordinate.data());  // copy colours after normals
+
+	//newObject->vetrexes.clear();
 
 	return newObject;
 }
