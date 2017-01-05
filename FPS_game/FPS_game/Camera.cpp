@@ -17,7 +17,7 @@ void Camera::init()
 	m_yaw = 0.0;
 	m_pitch = 0.0;
 
-	location = vector3d(100, 1, 5);
+	location = vector3d(2, 1, 2);
 }
 
 void Camera::refresh()

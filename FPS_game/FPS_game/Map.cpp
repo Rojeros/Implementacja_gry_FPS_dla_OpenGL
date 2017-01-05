@@ -7,6 +7,9 @@
 
 #include <SDL.h>
 
+vector2D Map::lastPosition;
+float  Map::lastHeiht;
+
 // this function taken from SDL documentation
 // http://www.libsdl.org/cgi/docwiki.cgi/Introduction_to_SDL_Video#getpixel
 Uint32 getPixel(SDL_Surface* surface, int x, int y)
@@ -124,7 +127,9 @@ void Map::loadHeightMap(char *fileName, float heightFactor)
 void Map::initTerrain(char *fileName, float heightReducingFactor)
 {
 	int i, j;
-	
+	lastPosition=vector2D(0,0);
+	lastHeiht = 0;
+
 	loadHeightMap(fileName, heightReducingFactor);
 
 	terrain->terrainList = glGenLists(1);
@@ -213,47 +218,54 @@ cellIndex Map::getActiveTriangle( float x, float z)
 {
 	int i, j;
 	cellIndex result;
+	result.index_x = -1;
+	result.index_z = -1;
+	result.index_triangle = -1;
 	vector2D vertices[3];
+
+	
 
 	for (i = 1; i < terrain->width; i++)
 	{
+		
 		for (j = 1; j < terrain->height; j++)
 		{
-			vertices[0].x = terrain->vertices[i - 1][j - 1].x;
-			vertices[0].z = terrain->vertices[i - 1][j - 1].z;
-			vertices[1].x = terrain->vertices[i][j - 1].x;
-			vertices[1].z = terrain->vertices[i][j - 1].z;
-			vertices[2].x = terrain->vertices[i][j].x;
-			vertices[2].z = terrain->vertices[i][j].z;
+			if (terrain->vertices[i - 1][j - 1].x == (int)x &&  terrain->vertices[i - 1][j - 1].z == (int)z) {
+				vertices[0].x = terrain->vertices[i - 1][j - 1].x;
+				vertices[0].z = terrain->vertices[i - 1][j - 1].z;
+				vertices[1].x = terrain->vertices[i][j - 1].x;
+				vertices[1].z = terrain->vertices[i][j - 1].z;
+				vertices[2].x = terrain->vertices[i][j].x;
+				vertices[2].z = terrain->vertices[i][j].z;
 
-			if (Collision::isCollision2points(x, z, vertices))
-			{
-				result.index_x = i;
-				result.index_z = j;
-				result.index_triangle = 0;
-				goto finish;
+				if (Collision::isCollision2points(x, z, vertices))
+				{
+					result.index_x = i;
+					result.index_z = j;
+					result.index_triangle = 0;
+					return result;
+				}
+
+
+				vertices[0].x = terrain->vertices[i - 1][j - 1].x;
+				vertices[0].z = terrain->vertices[i - 1][j - 1].z;
+				vertices[1].x = terrain->vertices[i][j].x;
+				vertices[1].z = terrain->vertices[i][j].z;
+				vertices[2].x = terrain->vertices[i - 1][j].x;
+				vertices[2].z = terrain->vertices[i - 1][j].z;
+
+				if (Collision::isCollision2points(x, z, vertices))
+				{
+					result.index_x = i;
+					result.index_z = j;
+					result.index_triangle = 1;
+					return result;
+				}
 			}
-
-
-			vertices[0].x = terrain->vertices[i - 1][j - 1].x;
-			vertices[0].z = terrain->vertices[i - 1][j - 1].z;
-			vertices[1].x = terrain->vertices[i][j].x;
-			vertices[1].z = terrain->vertices[i][j].z;
-			vertices[2].x = terrain->vertices[i - 1][j].x;
-			vertices[2].z = terrain->vertices[i - 1][j].z;
-
-			if (Collision::isCollision2points(x, z, vertices))
-			{
-				result.index_x = i;
-				result.index_z = j;
-				result.index_triangle = 1;
-				goto finish;
-			}
-				
 		}
 	}
 
-finish:
+
 	
 	return result;
 }
@@ -262,6 +274,10 @@ finish:
 
 float Map::getTerrainHeight( float x, float z)
 {
+	if (lastPosition.x == x && lastPosition.z == z) {
+		return lastHeiht;
+
+	}
 	vector3d vertices[3];
 	vector3d planeNormal;
 	float a, b, c, d;
@@ -292,7 +308,10 @@ float Map::getTerrainHeight( float x, float z)
 		vertices[2].y = terrain->vertices[activeTriangle.index_x - 1][activeTriangle.index_z].y;
 		vertices[2].z = terrain->vertices[activeTriangle.index_x - 1][activeTriangle.index_z].z;
 	}
-
+	else if (activeTriangle.index_triangle == -1)
+	{
+		return 0;
+	}
 	planeNormal = getNormal(vertices[0], vertices[1], vertices[2]);
 
 	a = planeNormal.x;
@@ -301,5 +320,9 @@ float Map::getTerrainHeight( float x, float z)
 	d = -(a*vertices[0].x + b*vertices[0].y + c*vertices[0].z);
 
 	height = -(a*x + c*z + d) / b;
+
+	lastPosition = vector2D(x, z);
+	lastHeiht = height;
+
 	return height;
 }

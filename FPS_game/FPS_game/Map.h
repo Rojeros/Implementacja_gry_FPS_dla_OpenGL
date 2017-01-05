@@ -57,6 +57,7 @@ public:
 	void renderTerrain();
 	float getTerrainHeight( float x, float z);
 	cellIndex Map::getActiveTriangle( float x, float z);
-
+	static vector2D lastPosition;
+	static float lastHeiht;
 };
 
