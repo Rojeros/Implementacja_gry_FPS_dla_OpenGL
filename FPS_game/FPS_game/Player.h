@@ -37,6 +37,7 @@ public:
 	void Player::update(bool * keys, float groundHeight);
 	void decreaseHealth(int num);
 	int getHealth();
+	int getEnergy();
 	void setHealth(int h);
 	void addHealth(int h);
 	void setStartPosition(vector3d pos);

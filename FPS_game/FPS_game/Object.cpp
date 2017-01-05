@@ -44,12 +44,12 @@ void Object::draw(std::vector<material> & mainMaterial, std::vector<materialVert
 		glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
 		glMaterialf(GL_FRONT, GL_SHININESS, mainMaterial[mainMaterialsVertex[i].materialIndex].ns);
 		glColor3f(diffuse[0], diffuse[1], diffuse[2]);
-
-
+	
 		dataPointer = &vertexIndices[mainMaterialsVertex[i].startIndex];
 		int tex = mainMaterial[mainMaterialsVertex[i].materialIndex].texture;
 		if (tex < 0) {
-			glDisable, (GL_TEXTURE_2D);
+			glDisable(GL_TEXTURE_2D);
+
 			if (mainMaterialsVertex[i].faceFormat == 3) {
 				glDrawArrays(GL_TRIANGLES, mainMaterialsVertex[i].startIndex, (mainMaterialsVertex[i].size));
 			}
@@ -72,8 +72,7 @@ void Object::draw(std::vector<material> & mainMaterial, std::vector<materialVert
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	// wy³¹czenie oœwietlenia
-	glDisable(GL_COLOR_MATERIAL);
+
 }
 
 

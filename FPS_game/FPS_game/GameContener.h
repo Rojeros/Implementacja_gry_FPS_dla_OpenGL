@@ -60,7 +60,7 @@ private:
 	// How many frames time values to keep
 	// The higher the value the smoother the result is...
 	// Don't make it 0 or less :)
-#define FRAME_VALUES 10
+#define FRAME_VALUES 100
 
 	// An array to store frame times:
 	Uint32 frametimes[FRAME_VALUES];
@@ -139,6 +139,5 @@ private:
 		framespersecond = 1000.f / framespersecond;
 
 	}
-
 };
 

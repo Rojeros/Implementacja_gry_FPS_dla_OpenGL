@@ -2,7 +2,7 @@
 #include <SDL.h>
 
 
-Player::Player():health(500),energy(10), isSprint(false),points(0),dx(0),dy(0)
+Player::Player():health(100),energy(100), isSprint(false),points(0),dx(0),dy(0)
 {
 	
 	force.change(0.0, -1, 0.0);
@@ -50,37 +50,43 @@ void Player::update(bool * keys, float groundHeight)
 {
 	float modifier = 1;
 	if (keys[SDL_SCANCODE_LSHIFT] == 1 || SDL_SCANCODE_RSHIFT == 1) {
-		if (energy > 1) {
+		if (energy > 20) {
 			isSprint = true;
 			modifier = 3;
 			
 		}
 	}
 
+	if (keys[SDL_SCANCODE_LCTRL] == 1) {
+		addHealth(-1);
+
+		
+	}
+
 	if (keys[SDL_SCANCODE_LEFT] == 1|| keys[SDL_SCANCODE_A]) {
 		cam->strafe(-1 * WALK_SPEED * modifier);
 		if (isSprint)
-			energy -= 0.05;
+			energy -= 0.5;
 	}
 	if (keys[SDL_SCANCODE_RIGHT] == 1 || keys[SDL_SCANCODE_D]) {
 		cam->strafe(WALK_SPEED*modifier);
 		if (isSprint)
-			energy -= 0.05;
+			energy -= 0.5;
 	}
 	if (keys[SDL_SCANCODE_UP] == 1 || keys[SDL_SCANCODE_W]) {
 		cam->move(WALK_SPEED*modifier);
 		if (isSprint)
-			energy -= 0.05;
+			energy -= 0.5;
 	}
 	if (keys[SDL_SCANCODE_DOWN] == 1 || keys[SDL_SCANCODE_S]) {
 		cam->move(-WALK_SPEED*modifier);
 		if (isSprint)
-			energy -= 0.05;
+			energy -= 0.5;
 	}
 	if (keys[SDL_SCANCODE_F] == 1 ) {
 		teleport();
 		if (isSprint)
-			energy -= 0.05;
+			energy -= 0.5;
 	}
 		cam->rotateYaw(0.005*dx);
 		dx = 0;
@@ -98,8 +104,8 @@ void Player::update(bool * keys, float groundHeight)
 	if (getY() < groundHeight+0.5 )
 		direction += vector3d(0, groundHeight-getY()+0.5, 0);
 	
-	if (energy<10 && !isSprint)
-		energy += 0.01;
+	if (energy<100 && !isSprint)
+		energy += 0.1;
 	
 
 		isSprint=false;
@@ -126,6 +132,11 @@ void Player::decreaseHealth(int num)
 int Player::getHealth()
 {
 	return health;
+}
+
+int Player::getEnergy()
+{
+	return energy;
 }
 
 

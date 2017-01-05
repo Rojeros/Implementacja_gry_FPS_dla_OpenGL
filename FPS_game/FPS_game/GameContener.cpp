@@ -3,10 +3,7 @@
 #include <iostream>
 #include <vector>
 
-GLfloat ambient_light[4] =
-{
-	0.2, 0.2, 0.2, 1.0
-};
+
 GLuint GameContener::TextureID;
 GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512),gameRunning(true)
 {
@@ -19,6 +16,7 @@ int GameContener::Run()
 		return -1;
 
 	StartEngine();
+	fpsinit();
 	while (gameRunning)
 	{
 		WaitFrame(60);
@@ -124,6 +122,10 @@ bool GameContener::SetupRC()
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection);
 	glMateriali(GL_FRONT, GL_SHININESS, 96);
 
+
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+
 	TTF_Init();
 	text = new GameUI(renderer, screen_width, screen_height, 32);
 
@@ -143,7 +145,7 @@ void GameContener::Render()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glDisable(GL_LIGHTING);
+//	glDisable(GL_LIGHTING);
 	gluPerspective(45, screen_width / screen_height, 0.1, 500.0);
 	glBegin(GL_LINES);
 	for (int i = 0; i <= 100; i++) {
@@ -156,9 +158,6 @@ void GameContener::Render()
 	glEnd();
 
 	player->update(keys,map->getTerrainHeight(player->getX(),player->getZ()));
-
-
-
 
 
 
@@ -176,6 +175,22 @@ void GameContener::Render()
 	static int frame = 0;
 	enemy[frame]->draw(materials, materialsVertex);
 
+
+	glTranslatef(30, 0, 0);
+	enemy[frame]->draw(materials, materialsVertex);
+	glTranslatef(30, 0, 0);
+	enemy[frame]->draw(materials, materialsVertex);
+	glTranslatef(30, 0, 0);
+	enemy[frame]->draw(materials, materialsVertex);
+	glTranslatef(30, 0, 0);
+	enemy[frame]->draw(materials, materialsVertex);
+	glTranslatef(30, 0, 0);
+	enemy[frame]->draw(materials, materialsVertex);
+	glTranslatef(30, 0, 0);
+	enemy[frame]->draw(materials, materialsVertex);
+	glTranslatef(30, 0, 0);
+	enemy[frame]->draw(materials, materialsVertex);
+
 	frame++;
 	if (frame > 19)
 		frame = 0;
@@ -184,10 +199,12 @@ void GameContener::Render()
 
 	
 	SDL_Color color = { 255, 0, 0, 255 };
-	text->changeValues(0, 0, 0, 0, "0", "0.lvl0", framespersecond);
+	text->changeValues(player->getHealth(), player->getEnergy(), 0, 0, player->getPoints(), "0", "0.lvl0", framespersecond);
 	text->draw();
 
 	SDL_GL_SwapWindow(mainWindow);
+
+	
 
 	return;
 }
@@ -276,7 +293,7 @@ void GameContener::StartEngine()
 	player = new Player();
 	map->initTerrain("data/heightMap.bmp",0.1);
 	LevelLoad lvl1;
-	enemy= lvl1.animation("data/1/MagmaElemental_1_", materials, materialsVertex);
+	enemy= lvl1.animation("data/2/gun/Handgun_Game_Cycles_", materials, materialsVertex);
 //	LevelLoad::vertexBuffer;
 	/* inicjujemy engine tutaj */
 	SDL_Init(0);

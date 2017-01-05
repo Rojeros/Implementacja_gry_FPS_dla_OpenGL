@@ -85,7 +85,7 @@ void Text::renderText(const std::string & message, SDL_Color color, coordinates 
 	SDL_FreeSurface(sFont);
 }
 
-void GameUI::changeValues(int health, int ammo, int allammo, int score, std::string weaponName, std::string level, int fps)
+void GameUI::changeValues(int health, int energy, int ammo, int allammo, int score, std::string weaponName, std::string level, int fps)
 {
 	if (healthTexture != health) {
 		glGenTextures(1, &tex[0]);
@@ -95,6 +95,9 @@ void GameUI::changeValues(int health, int ammo, int allammo, int score, std::str
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sFontHealth->w, sFontHealth->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, sFontHealth->pixels);
+	}
+	if (energyTexture != energy) {
+		energyTexture = energy;
 	}
 	if (ammoTexture != ammo || allammoTexture != allammo) {
 		glGenTextures(1, &tex[1]);
@@ -159,6 +162,8 @@ void GameUI::draw()
 	draw(4, N, 0, 0, sFontLevel->w, sFontLevel->h);
 	//fps
 	draw(5, NW, -1, 0, sFontFps->w, sFontFps->h);
+	drawBoxes();
+
 }
 
 void GameUI::draw(int index, coordinates coord, int line, int column, float widthT, float heightT)
@@ -204,21 +209,21 @@ void GameUI::draw(int index, coordinates coord, int line, int column, float widt
 	if (coord == W || coord == E || coord == CENTER)	//center, y
 		y = (height / 2) - (heightT / 2) + (line*heightT*1.2);
 
-
+	
 	glBegin(GL_QUADS);
 	{
+		
+
 		glTexCoord2f(0, 1); glVertex2f(x, y);
 		glTexCoord2f(1, 1); glVertex2f(x + widthT, y);
 		glTexCoord2f(1, 0); glVertex2f(x + widthT, y + heightT);
 		glTexCoord2f(0, 0); glVertex2f(x, y + heightT);
 	}
 	glEnd();
-
-
-
-
+	
+	
+	
 	glDisable(GL_BLEND);
-	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
 
 	glMatrixMode(GL_PROJECTION);
@@ -228,5 +233,84 @@ void GameUI::draw(int index, coordinates coord, int line, int column, float widt
 	glEnable(GL_TEXTURE_2D);
 
 
+
+}
+
+void GameUI::drawBoxes()
+{
+	int xl = 0;
+	int xr = 0;
+	int	y = 0;
+	int margin = height *0.04;
+
+	float  minusLife = (float)( 100 - healthTexture)/100;
+	int boxLifeWidth = width*0.3;
+	boxLifeWidth = boxLifeWidth - boxLifeWidth*minusLife;
+	float  green = 1 - minusLife;
+	float  redLife = minusLife;
+
+
+	float  minusEnergy = (float)(100 - energyTexture) / 100;
+	int boxEnergyWidth = width*0.3;
+	boxEnergyWidth = boxEnergyWidth - boxEnergyWidth*minusEnergy;
+	float  blue = 1 - minusEnergy;
+	float  redEnergy = minusEnergy;
+
+	
+		y = (0) + (margin)+(fontSize*1.2);
+
+		xr = width - (boxEnergyWidth + margin);
+		xl = 0 + (margin);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	gluOrtho2D(0, width, 0, height); // m_Width and m_Height is the resolution of window
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+
+	glDisable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+	glColor3f(redLife, green, 0.0);
+	glVertex2f(xl, y);
+	glColor3f(redLife, green, 0.0);
+	glVertex2f(xl + boxLifeWidth, y);
+	glColor3f(redLife, green, 0.0);
+	glVertex2f(xl + boxLifeWidth, y + fontSize);
+	glColor3f(redLife, green, 0.0);
+	glVertex2f(xl , y + fontSize);
+	glEnd();
+
+	glBegin(GL_QUADS);
+	
+	glColor3f(redEnergy, 0, blue);
+	glVertex2f(xr, y);
+	glColor3f(redEnergy, 0.0, blue);
+	glVertex2f(xr + boxEnergyWidth, y);
+	glColor3f(redEnergy, 0.0, blue);
+	glVertex2f(xr + boxEnergyWidth, y + fontSize);
+	glColor3f(redEnergy, 0, blue);
+	glVertex2f(xr, y + fontSize);
+	glEnd();
+
+
+
+
+	glEnable(GL_TEXTURE_2D);
+
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glEnable(GL_TEXTURE_2D);
 
 }

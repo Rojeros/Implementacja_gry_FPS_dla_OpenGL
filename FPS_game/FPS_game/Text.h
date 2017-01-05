@@ -40,6 +40,7 @@ class GameUI :public Text {
 public:
 	GameUI(SDL_Renderer *renderer, int  width, int height, int fontSize) :Text(renderer, width, height, fontSize) {
 		 healthTexture = -1;
+		 energyTexture = -1;
 		ammoTexture = -1;
 		allammoTexture = -1;
 		scoreTexture = -1;
@@ -53,12 +54,13 @@ public:
 		sFontWeaponName = TTF_RenderText_Blended(font, (weaponNameTexture).c_str(), colorTexture);;
 		sFontLevel = TTF_RenderText_Blended(font, (levelTexture).c_str(), colorTexture);
 		sFontFps = TTF_RenderText_Blended(font, ("FPS: " + std::to_string(fpsTexture)).c_str(), colorTexture);
-		changeValues(0,0,0,0,"0","0.lvl",0);
+		changeValues(0,0,0,0,0,"0","0.lvl",0);
 	};
-	void changeValues(int health,int ammo,int allammo,int score,std::string weaponName,std::string level,int fps);
+	void changeValues(int health,int energy,int ammo,int allammo,int score,std::string weaponName,std::string level,int fps);
 	void draw();
 	protected:
 		int healthTexture;
+		int energyTexture;
 		int ammoTexture;
 		int allammoTexture;
 		int scoreTexture;
@@ -74,5 +76,6 @@ public:
 		SDL_Color colorTexture;
 
 		GLuint tex[6];
-		void GameUI::draw(int index, coordinates coord, int line, int column, float widthT, float heightT);
+		void draw(int index, coordinates coord, int line, int column, float widthT, float heightT);
+		void drawBoxes();
 };
