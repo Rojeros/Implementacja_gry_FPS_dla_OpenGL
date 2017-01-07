@@ -55,6 +55,14 @@ public:
 		sFontLevel = TTF_RenderText_Blended(font, (levelTexture).c_str(), colorTexture);
 		sFontFps = TTF_RenderText_Blended(font, ("FPS: " + std::to_string(fpsTexture)).c_str(), colorTexture);
 		changeValues(0,0,0,0,0,"0","0.lvl",0);
+
+		glGenTextures(1, &tex[6]);
+		glBindTexture(GL_TEXTURE_2D, tex[6]);
+		sFontAim = TTF_RenderText_Blended(font, "+", colorTexture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sFontAim->w, sFontAim->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, sFontAim->pixels);
+		
 	};
 	void changeValues(int health,int energy,int ammo,int allammo,int score,std::string weaponName,std::string level,int fps);
 	void draw();
@@ -73,9 +81,10 @@ public:
 		SDL_Surface * sFontWeaponName;
 		SDL_Surface * sFontLevel;
 		SDL_Surface * sFontFps;
+		SDL_Surface * sFontAim;
 		SDL_Color colorTexture;
 
-		GLuint tex[6];
+		GLuint tex[7];
 		void draw(int index, coordinates coord, int line, int column, float widthT, float heightT);
 		void drawBoxes();
 };

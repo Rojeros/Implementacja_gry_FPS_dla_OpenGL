@@ -510,19 +510,19 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 
 		}
 	}
-	//buid normals vertex buffer
+	//build normals vertex buffer
 	for (int i = 0; i < normalIndices.size(); i++) {
 		newObject->normals.push_back(normalsTemp[normalIndices[i]].x);
 		newObject->normals.push_back(normalsTemp[normalIndices[i]].y);
 		newObject->normals.push_back(normalsTemp[normalIndices[i]].z);
 	}
-	//buid texture vertex buffer
+	//build texture vertex buffer
 	for (int i = 0; i < textureIndices.size(); i++) {
 		newObject->texturecoordinate.push_back(textureTemp[textureIndices[i]].x);
 		newObject->texturecoordinate.push_back(textureTemp[textureIndices[i]].z);
 
 	}
-	//buid vertex buffer
+	//build vertex buffer
 	for (int i = 0; i < newObject->vertexIndices.size(); i++) {
 		newObject->vetrexes.push_back(vetrexesTmp[newObject->vertexIndices[i]].x);
 		newObject->vetrexes.push_back(vetrexesTmp[newObject->vertexIndices[i]].y);
@@ -562,21 +562,23 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 
 		newObject->vetrexes.size()* sizeof(float) + newObject->normals.size()* sizeof(float), 
 		newObject->texturecoordinate.size()* sizeof(float), newObject->texturecoordinate.data());  // copy colours after normals
-
+	//TODO: do this under
 	//newObject->vetrexes.clear();
 
 	return newObject;
 }
 
-std::vector<Object*> LevelLoad::animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex)
+std::vector<Object*>* LevelLoad::animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, int &frames)
 {
 
-	std::vector<Object*> anim;
+	std::vector<Object*>* anim=new std::vector<Object*>();
+	int counter=-1;
 	struct stat buffer;
 	int i = 1;
 	bool stop = false;
 	if (stat(path.c_str(), &buffer) == 0) {
-		anim.push_back(loadFromFile(path, false, mainMaterial, mainMaterialsVertex));
+		anim->push_back(loadFromFile(path, false, mainMaterial, mainMaterialsVertex));
+		counter++;
 	}
 	else {
 		do {
@@ -588,16 +590,20 @@ std::vector<Object*> LevelLoad::animation(std::string path, std::vector<material
 			newpath += std::to_string(i) + ".obj";
 
 			if (stat(newpath.c_str(), &buffer) == 0) {
-				anim.push_back(loadFromFile(newpath, i != 1, mainMaterial, mainMaterialsVertex));
+				anim->push_back(loadFromFile(newpath, i != 1, mainMaterial, mainMaterialsVertex));
 				i++;
-
+				counter++;
 			}
 			else {
 				stop = true;
 			}
 		} while (!stop);
 	}
-
+	if (counter == -1) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error",	"animation loading error.",	NULL);
+		exit(3);
+	}
+	frames = counter;
 	return anim;
 }
 

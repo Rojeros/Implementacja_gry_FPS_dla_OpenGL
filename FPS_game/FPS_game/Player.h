@@ -6,6 +6,7 @@
 #include <string>
 #include <cmath>
 #include "camera.h"
+#include "Weapon.h"
 
 static float LOOK_SPEED = 0.005;
 static float WALK_SPEED = 0.1;
@@ -27,11 +28,13 @@ private:
 	Camera * cam;
 	float dx, dy;
 	float dvx, dvy;
+	std::vector<Weapon> *arsenal;
 
 public:
 	Player();
+	~Player();
 	Camera* getCamera();
-	void show();
+	void show(float dt);
 	void jump();
 	void lookAt(float dx, float dy);
 	void Player::update(bool * keys, float groundHeight);
@@ -42,6 +45,7 @@ public:
 	void addHealth(int h);
 	void setStartPosition(vector3d pos);
 	void addPoints(int num);
+	Weapon *getCurrentWeapon();
 	bool isGroundCollision();
 	bool isDead();
 	int getPoints();

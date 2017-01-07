@@ -3,9 +3,9 @@
 #include <iostream>
 #include <vector>
 
-
+ Uint32 GameContener::lastTiks;
 GLuint GameContener::TextureID;
-GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512),gameRunning(true), gamePause(false)
+GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512), gameRunning(true), gamePause(false)
 {
 	map = new Map();
 }
@@ -24,13 +24,14 @@ int GameContener::Run()
 			ProcessEvents();
 			DoEngine();
 			Render();
-			fpsthink();
+		
 		}
-		text->renderText("Pause", { 0,0,100 }, coordinates::CENTER, 0, 0);
-		Render();
-		ProcessEvents();
-		
-		
+		if (gameRunning) {
+			WaitFrame(5);
+			RenderPause();
+			ProcessEvents();
+		}
+
 	}
 
 }
@@ -38,6 +39,12 @@ int GameContener::Run()
 
 GameContener::~GameContener()
 {
+
+	delete  player;
+	delete map;
+	delete enemy;
+	delete text;
+
 }
 
 bool GameContener::SetupRC()
@@ -49,10 +56,11 @@ bool GameContener::SetupRC()
 		return false;
 	}
 	Uint32 flags;
-	if (full_screen == 1){
+	if (full_screen == 1) {
 		flags = SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL;
-	}else{
-		flags = SDL_WINDOW_OPENGL| SDL_WINDOW_RESIZABLE;
+	}
+	else {
+		flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 	}
 	// Create our window 
 	//TODO: zmieniæ na koniec 800 na sdl_windowpos_centered
@@ -85,7 +93,7 @@ bool GameContener::SetupRC()
 
 	SDL_ShowCursor(SDL_DISABLE);
 
-	
+
 	glShadeModel(GL_SMOOTH);
 
 	glCullFace(GL_BACK);
@@ -143,7 +151,8 @@ bool GameContener::SetupRC()
 
 void GameContener::Render()
 {
-
+	if (gamePause || !gameRunning)
+		return;
 	/* rysujemy tutaj */
 	glClearColor(0.4, 0.7, 1.0, 0.5); //clear the screen to black
 	glClearDepth(1.0);
@@ -152,7 +161,7 @@ void GameContener::Render()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-//	glDisable(GL_LIGHTING);
+	//	glDisable(GL_LIGHTING);
 	gluPerspective(45, screen_width / screen_height, 0.1, 500.0);
 	glBegin(GL_LINES);
 	for (int i = 0; i <= 100; i++) {
@@ -164,27 +173,25 @@ void GameContener::Render()
 	};
 	glEnd();
 
+	fpsthink();
 
+	Uint32 delta = 0;
+	Uint32 tmp = SDL_GetTicks();
+	delta = tmp - lastTiks;
+	lastTiks = tmp;
+	float dt = ((float)delta) / 1000.f;
 
-
-	player->show();
+	
 	//std::cout<<player->getCamera()->getLocation();
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	map->renderTerrain();
+	player->show(dt);
 
-	
-
-	
 	glTranslatef(50, 12, -50);
 	static int frame = 0;
-	enemy[frame]->draw(materials, materialsVertex);
 
 
-	glTranslatef(30, 0, 0);
-	enemy[frame]->draw(materials, materialsVertex);
-	glTranslatef(30, 0, 0);
-	enemy[frame]->draw(materials, materialsVertex);
 	//glTranslatef(30, 0, 0);
 	//enemy[frame]->draw(materials, materialsVertex);
 	//glTranslatef(30, 0, 0);
@@ -206,10 +213,10 @@ void GameContener::Render()
 	//SDL_Color color = { 255, 0, 0, 255 };
 	text->changeValues(player->getHealth(), player->getEnergy(), 0, 0, player->getPoints(), "0", "0.lvl0", framespersecond);
 	text->draw();
-//	std::cout << framespersecond << "\n";
+	//	std::cout << framespersecond << "\n";
 	SDL_GL_SwapWindow(mainWindow);
 
-	
+
 
 	return;
 }
@@ -253,23 +260,22 @@ void GameContener::HandleKeyUp(SDL_Keysym* keysym)
 }
 void GameContener::MouseMotion(SDL_MouseMotionEvent * motion)
 {
-	if(!gamePause){
-	//std::cout<<motion->xrel<<"\n";
-	float dx= motion->x - screen_width / 2;
-	float dy = motion->y - screen_height / 2;
-	SDL_WarpMouseInWindow(mainWindow, (screen_width / 2), (screen_height / 2));
-	player->lookAt(dx, dy);
-	//int dy = motion->y - screen_height / 2;
+	if (!gamePause) {
+		//std::cout<<motion->xrel<<"\n";
+		float dx = motion->x - screen_width / 2;
+		float dy = motion->y - screen_height / 2;
+		SDL_WarpMouseInWindow(mainWindow, (screen_width / 2), (screen_height / 2));
+		player->lookAt(dx, dy);
+		//int dy = motion->y - screen_height / 2;
 	}
 }
 void GameContener::MouseClick(SDL_MouseButtonEvent * click)
 {
-	SDL_DisplayMode *mode= new SDL_DisplayMode();
-	mode->format = SDL_PIXELFORMAT_RGB24;
-	mode->w = 1920;
-	mode->h = 1080;
-	mode->refresh_rate = 60;
-	SDL_SetWindowDisplayMode(mainWindow, mode);
+	bool isshot = false;
+	vector3d shotDirection;
+		isshot = player->getCurrentWeapon()->fire(shotDirection,player->getCamera()->getDirectionVector());
+		shotDirection.normalize();
+	
 }
 void GameContener::ProcessEvents(void)
 {
@@ -301,59 +307,49 @@ void GameContener::ProcessEvents(void)
 		if (event.type == SDL_WINDOWEVENT) {
 			switch (event.window.event) {
 			case SDL_WINDOWEVENT_SHOWN:
-				SDL_Log("Window %d shown", event.window.windowID);
+			//	SDL_Log("Window %d shown", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_HIDDEN:
-				SDL_Log("Window %d hidden", event.window.windowID);
+			//	SDL_Log("Window %d hidden", event.window.windowID);
 				gamePause = true;
 				break;
 			case SDL_WINDOWEVENT_EXPOSED:
-				SDL_Log("Window %d exposed", event.window.windowID);
+			//	SDL_Log("Window %d exposed", event.window.windowID);
 				gamePause = false;
 				break;
 			case SDL_WINDOWEVENT_MOVED:
-				SDL_Log("Window %d moved to %d,%d",
-					event.window.windowID, event.window.data1,
-					event.window.data2);
+				//SDL_Log("Window %d moved to %d,%d",event.window.windowID, event.window.data1,	event.window.data2);
 				break;
 			case SDL_WINDOWEVENT_RESIZED:
-				SDL_Log("Window %d resized to %dx%d",
-					event.window.windowID, event.window.data1,
-					event.window.data2);
+			//	SDL_Log("Window %d resized to %dx%d",event.window.windowID, event.window.data1,	event.window.data2);
 				resizeWindow(event.window.data1, event.window.data2);
 				screen_width = event.window.data1;
 				screen_height = event.window.data2;
 
 				break;
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				SDL_Log("Window %d size changed to %dx%d",
-					event.window.windowID, event.window.data1,
-					event.window.data2);
-
+			//	SDL_Log("Window %d size changed to %dx%d",event.window.windowID, event.window.data1,event.window.data2);
 				break;
 			case SDL_WINDOWEVENT_MINIMIZED:
-				SDL_Log("Window %d minimized", event.window.windowID);
+				//SDL_Log("Window %d minimized", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_MAXIMIZED:
-				SDL_Log("Window %d maximized", event.window.windowID);
+			//	SDL_Log("Window %d maximized", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_RESTORED:
-				SDL_Log("Window %d restored", event.window.windowID);
+				//SDL_Log("Window %d restored", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_ENTER:
-				SDL_Log("Mouse entered window %d",
-					event.window.windowID);
+			//	SDL_Log("Mouse entered window %d",event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_LEAVE:
-				SDL_Log("Mouse left window %d", event.window.windowID);
+			//	SDL_Log("Mouse left window %d", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_FOCUS_GAINED:
-				SDL_Log("Window %d gained keyboard focus",
-					event.window.windowID);
+			//	SDL_Log("Window %d gained keyboard focus",event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_FOCUS_LOST:
-				SDL_Log("Window %d lost keyboard focus",
-					event.window.windowID);
+			//	SDL_Log("Window %d lost keyboard focus",event.window.windowID);
 				gamePause = true;
 				break;
 
@@ -367,15 +363,15 @@ void GameContener::StartEngine()
 {
 	SDL_Init(0);
 	player = new Player();
-	map->initTerrain("data/heightMap.bmp",0.1);
-	LevelLoad lvl1;
-	enemy= lvl1.animation("data/2/gun/Handgun_Game_Cycles_000001.obj", materials, materialsVertex);
-
+	map->initTerrain("data/heightMap.bmp", 0.1);
+//	enemy = new ObjectContainer("data/2/gun/Handgun_Game_Cycles_",0.5,true);
 
 	return;
 }
 void GameContener::DoEngine()
 {
+	if (gamePause || !gameRunning)
+		return;
 	player->update(keys, map->getTerrainHeight(player->getX(), player->getZ()));
 
 
@@ -383,6 +379,8 @@ void GameContener::DoEngine()
 }
 void GameContener::WaitFrame(int fps)
 {
+	if (gamePause || !gameRunning)
+		return;
 	static int next_tick = 0;
 	int this_tick;
 
@@ -392,6 +390,22 @@ void GameContener::WaitFrame(int fps)
 	next_tick = SDL_GetTicks() + (1000 / fps);
 
 	return;
+}
+void GameContener::RenderPause()
+{
+	glClearColor(0.4, 0.7, 1.0, 0.5); //clear the screen to black
+	glClearDepth(1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear the color buffer and the depth buffer
+	glClearDepth(1.0);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	//	glDisable(GL_LIGHTING);
+	gluPerspective(45, screen_width / screen_height, 0.1, 500.0);
+
+	text->renderText("Pause", { 255,0,100 }, coordinates::CENTER, 0, 0);
+	SDL_GL_SwapWindow(mainWindow);
+
 }
 void GameContener::QuitGame()
 {
@@ -404,7 +418,7 @@ void GameContener::QuitGame()
 	SDL_DestroyWindow(mainWindow);
 
 	// Shutdown SDL 2
-	SDL_Quit(); 
+	SDL_Quit();
 	//TODO: zrobiæ zrzut gry
 	gameRunning = false;
 	gamePause = true;

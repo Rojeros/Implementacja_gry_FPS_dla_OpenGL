@@ -19,7 +19,7 @@ public:
 	void setLocation(const vector3d& newPosition);
 	void getPosition(float &x, float &y, float &z);
 	void getDirectionVector(float &x, float &y, float &z);
-	vector3d Camera::getDirectionVector();
+	vector3d getDirectionVector();
 	void setYaw(float angle);
 	void setPitch(float angle);
 	vector3d getLocation();

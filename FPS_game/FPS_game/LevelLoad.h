@@ -17,7 +17,7 @@ public:
 
 	LevelLoad();
 	Object* loadFromFile(std::string path,bool isTexturFileIsLoad, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex);
-	std::vector<Object*> animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex);
+	std::vector<Object*> *animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex,int &frames);
 	~LevelLoad();
 private:
 	std::vector<GLuint>normalIndices;

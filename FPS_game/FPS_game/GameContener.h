@@ -15,6 +15,7 @@
 #include "LevelLoad.h"
 #include "Object.h"
 #include "Text.h"
+#include "ObjectContainer.h"
 class GameContener
 {
 public:
@@ -38,7 +39,7 @@ private:
 	int full_screen;
 	bool gameRunning;
 	bool gamePause;
-	std::vector<Object*> enemy;
+	ObjectContainer * enemy;
 	std::vector<material> materials;
 	std::vector<materialVertex> materialsVertex;
 	GameUI *text;
@@ -57,7 +58,9 @@ private:
 	void DoEngine();
 	void Render();
 	void WaitFrame(int fps);
+	void RenderPause();
 
+	static Uint32 lastTiks;
 	// How many frames time values to keep
 	// The higher the value the smoother the result is...
 	// Don't make it 0 or less :)

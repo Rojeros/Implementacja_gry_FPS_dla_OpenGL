@@ -38,7 +38,9 @@ void Text::renderText(const std::string & message, SDL_Color color, coordinates 
 
 	SDL_Surface * sFont = TTF_RenderText_Blended(font, message.c_str(), color);
 	glColor4f(1, 1, 1, 1);
-	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sFont->w, sFont->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, sFont->pixels);
 
 
 	if (coord == N || coord == NW || coord == NE)	//top
@@ -162,7 +164,10 @@ void GameUI::draw()
 	draw(4, N, 0, 0, sFontLevel->w, sFontLevel->h);
 	//fps
 	draw(5, NW, -1, 0, sFontFps->w, sFontFps->h);
+	//Aim
+	draw(6, CENTER, 0, 0, sFontAim->w, sFontAim->h);
 	drawBoxes();
+	
 
 }
 

@@ -8,7 +8,14 @@ Player::Player():health(100),energy(100), isSprint(false),points(0),dx(0),dy(0)
 	force.change(0.0, -1, 0.0);
 	//direction.change(0.0, 0.0, 0.0);
 	cam = new Camera();
+	arsenal = new std::vector<Weapon>();
+	arsenal->push_back(Weapon("pistol",0.5,true, 50, 300, 5, 12, 1000, 1000, "data/2/gun/Handgun_Game_Cycles_"));
 
+}
+
+Player::~Player()
+{
+	//delete cam;
 }
 
 
@@ -18,9 +25,10 @@ Camera* Player::getCamera()
 	return cam;
 }
 
-void Player::show()
+void Player::show(float dt)
 {
 	cam->refresh();
+	arsenal->at(0).show(cam->getYaw(),cam->getPitch(),dt);
 }
 
 void Player::jump()
@@ -118,8 +126,8 @@ void Player::update(bool * keys, float groundHeight)
 
 	cam->setLocation(newpos);
 	direction.change(0, 0, 0);
-	vector3d tmp(newpos);
 
+	arsenal->at(0).update(newpos);
 
 }
 
@@ -163,6 +171,11 @@ void Player::setStartPosition(vector3d pos)
 void Player::addPoints(int num)
 {
 	points += num;
+}
+
+Weapon * Player::getCurrentWeapon()
+{
+	return &arsenal->at(0);
 }
 
 int Player::getPoints()
