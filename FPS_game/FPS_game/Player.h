@@ -24,6 +24,8 @@ private:
 	float energy;
 	int points;
 	bool wallCollision;
+	bool isJump;
+	float jumpHeight;
 	vector3d startPoint;
 	Camera * cam;
 	float dx, dy;

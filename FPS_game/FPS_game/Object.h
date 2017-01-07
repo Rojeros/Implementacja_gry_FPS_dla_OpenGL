@@ -48,11 +48,13 @@ public:
 	void draw(std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex);
 
 GLuint vboId;
-std::vector<float> vetrexes;
-std::vector<float> normals;
-std::vector<float> texturecoordinate;
+
+
 std::vector<GLuint> vertexIndices;
 std::vector<CollisionPlane> collplane;
+
+GLuint vetrexesSize;
+GLuint normalsSize;
 bool isMaterialsLoaded;
 
 	

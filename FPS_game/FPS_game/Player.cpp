@@ -2,10 +2,10 @@
 #include <SDL.h>
 
 
-Player::Player():health(100),energy(100), isSprint(false),points(0),dx(0),dy(0)
+Player::Player():health(100),energy(100), isSprint(false),points(0),dx(0),dy(0), isJump(false), jumpHeight(0)
 {
 	
-	force.change(0.0, -1, 0.0);
+	force.change(0.0, -0.45, 0.0);
 	//direction.change(0.0, 0.0, 0.0);
 	cam = new Camera();
 	arsenal = new std::vector<Weapon>();
@@ -33,10 +33,18 @@ void Player::show(float dt)
 
 void Player::jump()
 {
-	if (groundCollision)
+	if (groundCollision || isJump)
 	{
 		groundCollision = false;
-		direction.change(0.0, 2, 0.0);
+		isJump = true;
+
+		jumpHeight += 0.2;
+		direction.change(0, jumpHeight, 0);
+		if (jumpHeight >= 2.5) {
+			isJump = false;
+			jumpHeight = 0;
+		}
+
 	}
 }
 
@@ -92,26 +100,38 @@ void Player::update(bool * keys, float groundHeight)
 			energy -= 0.5;
 	}
 	if (keys[SDL_SCANCODE_F] == 1 ) {
-		teleport();
-		if (isSprint)
-			energy -= 0.5;
+	//	teleport();
+		}
+	if (keys[SDL_SCANCODE_R] == 1) {
+		arsenal->at(0).reload();
 	}
+	if (keys[SDL_SCANCODE_SPACE] == 1) {
+		jump();
+	}
+
+
+
 		cam->rotateYaw(0.005*dx);
 		dx = 0;
 		cam->rotatePitch(0.005*(-dy));
 		dy = 0;
-		
+
+
+
 		if (getY() > groundHeight + 0.5){
-			if ((getY() - groundHeight) < 1)
+			if ((getY() - groundHeight) < 1){
 				direction += vector3d(0, (groundHeight- getY())+0.5, 0);
-				
+				groundCollision = true;
+			}
 			if ((getY() - groundHeight) > 1)
 			direction += force;
+			
 		}
 
-	if (getY() < groundHeight+0.5 )
+	if (getY() < groundHeight+0.5 ){
 		direction += vector3d(0, groundHeight-getY()+0.5, 0);
-	
+		groundCollision = true;
+	}
 	if (energy<100 && !isSprint)
 		energy += 0.1;
 	

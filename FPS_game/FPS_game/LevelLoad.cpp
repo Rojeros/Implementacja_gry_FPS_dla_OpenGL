@@ -245,6 +245,12 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 	std::vector<vector2D >textureTemp;
 	//temp array for create buffer of object's vertex
 	std::vector<vector3d > vetrexesTmp;
+	std::vector<GLuint>normalIndices;
+	std::vector<GLuint>	textureIndices;
+
+	std::vector<float> vetrexes;
+	std::vector<float> normals;
+	std::vector<float> texturecoordinate;
 
 	//new 3d object from file
 	Object * newObject = new Object(isTexturFileIsLoad);
@@ -512,21 +518,21 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 	}
 	//build normals vertex buffer
 	for (int i = 0; i < normalIndices.size(); i++) {
-		newObject->normals.push_back(normalsTemp[normalIndices[i]].x);
-		newObject->normals.push_back(normalsTemp[normalIndices[i]].y);
-		newObject->normals.push_back(normalsTemp[normalIndices[i]].z);
+		normals.push_back(normalsTemp[normalIndices[i]].x);
+		normals.push_back(normalsTemp[normalIndices[i]].y);
+		normals.push_back(normalsTemp[normalIndices[i]].z);
 	}
 	//build texture vertex buffer
 	for (int i = 0; i < textureIndices.size(); i++) {
-		newObject->texturecoordinate.push_back(textureTemp[textureIndices[i]].x);
-		newObject->texturecoordinate.push_back(textureTemp[textureIndices[i]].z);
+		texturecoordinate.push_back(textureTemp[textureIndices[i]].x);
+		texturecoordinate.push_back(textureTemp[textureIndices[i]].z);
 
 	}
 	//build vertex buffer
 	for (int i = 0; i < newObject->vertexIndices.size(); i++) {
-		newObject->vetrexes.push_back(vetrexesTmp[newObject->vertexIndices[i]].x);
-		newObject->vetrexes.push_back(vetrexesTmp[newObject->vertexIndices[i]].y);
-		newObject->vetrexes.push_back(vetrexesTmp[newObject->vertexIndices[i]].z);
+		vetrexes.push_back(vetrexesTmp[newObject->vertexIndices[i]].x);
+		vetrexes.push_back(vetrexesTmp[newObject->vertexIndices[i]].y);
+		vetrexes.push_back(vetrexesTmp[newObject->vertexIndices[i]].z);
 	}
 
 	//calculate count of vertexs to bind texture 
@@ -548,22 +554,21 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 	}
 
 
-	normalIndices.clear();
-	textureIndices.clear();
-	loadedTextures.clear();
-	loadedTexturesNum.clear();
+	
 
-
+	newObject->vetrexesSize = vetrexes.size()* sizeof(float);
+	newObject->normalsSize = normals.size()* sizeof(float);
 	glGenBuffersARB(1, &newObject->vboId);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, newObject->vboId);
-	glBufferDataARB(GL_ARRAY_BUFFER_ARB, (newObject->vetrexes.size()* sizeof(float) + newObject->normals.size()* sizeof(float)+newObject->texturecoordinate.size()* sizeof(float)), 0, GL_STATIC_DRAW_ARB);
-	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 0, newObject->vetrexes.size()* sizeof(float), newObject->vetrexes.data());                             // copy vertices starting from 0 offest
-	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, newObject->vetrexes.size()* sizeof(float), newObject->normals.size()* sizeof(float), newObject->normals.data());                // copy normals after vertices
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, (newObject->vetrexesSize + newObject->normalsSize +texturecoordinate.size()* sizeof(float)), 0, GL_STATIC_DRAW_ARB);
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 0, newObject->vetrexesSize,vetrexes.data());                             // copy vertices starting from 0 offest
+	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, newObject->vetrexesSize, newObject->normalsSize, normals.data());                // copy normals after vertices
 	glBufferSubDataARB(GL_ARRAY_BUFFER_ARB, 
-		newObject->vetrexes.size()* sizeof(float) + newObject->normals.size()* sizeof(float), 
-		newObject->texturecoordinate.size()* sizeof(float), newObject->texturecoordinate.data());  // copy colours after normals
-	//TODO: do this under
-	//newObject->vetrexes.clear();
+		newObject->vetrexesSize + newObject->normalsSize,
+		texturecoordinate.size()* sizeof(float), texturecoordinate.data());  // copy colours after normals
+
+	loadedTextures.clear();
+	loadedTexturesNum.clear();
 
 	return newObject;
 }

@@ -188,9 +188,6 @@ void GameContener::Render()
 	map->renderTerrain();
 	player->show(dt);
 
-	glTranslatef(50, 12, -50);
-	static int frame = 0;
-
 
 	//glTranslatef(30, 0, 0);
 	//enemy[frame]->draw(materials, materialsVertex);
@@ -203,15 +200,7 @@ void GameContener::Render()
 	//glTranslatef(30, 0, 0);
 	//enemy[frame]->draw(materials, materialsVertex);
 
-	//frame++;
-	if (frame > 19)
-		frame = 0;
-
-
-
-	//
-	//SDL_Color color = { 255, 0, 0, 255 };
-	text->changeValues(player->getHealth(), player->getEnergy(), 0, 0, player->getPoints(), "0", "0.lvl0", framespersecond);
+	
 	text->draw();
 	//	std::cout << framespersecond << "\n";
 	SDL_GL_SwapWindow(mainWindow);
@@ -373,7 +362,7 @@ void GameContener::DoEngine()
 	if (gamePause || !gameRunning)
 		return;
 	player->update(keys, map->getTerrainHeight(player->getX(), player->getZ()));
-
+	text->changeValues(player->getHealth(), player->getEnergy(), player->getCurrentWeapon()->getAmmoClip(), player->getCurrentWeapon()->getAllBullets(), player->getPoints(), player->getCurrentWeapon()->getName(), "0.lvl0", framespersecond);
 
 	return;
 }

@@ -20,11 +20,8 @@ public:
 	std::vector<Object*> *animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex,int &frames);
 	~LevelLoad();
 private:
-	std::vector<GLuint>normalIndices;
-	std::vector<GLuint>	textureIndices;
 	std::vector<std::string> loadedTextures;
 	std::vector<int> loadedTexturesNum;
-
 
 	bool ismaterial, isnormals, istexture, isvertexnormal;
 	int parseMaterial(char* line, const std::string& filename, Object * newObject, std::vector<material> & mainMaterial);

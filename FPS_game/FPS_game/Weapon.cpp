@@ -112,17 +112,20 @@ void Weapon::update(vector3d newPosition) {
 		if (currentState == 2) {
 			if (fireStateAnimation->animationEnded()) {
 				currentState = 1;
+				isFired = false;
 			}
-			else {
-				if (currentState == 3) {
-					if (reloadStateAnimation->animationEnded()) {
-						currentState = 1;
-					}
+		}
+		else {
+			if (currentState == 3) {
+				if (reloadStateAnimation->animationEnded()) {
+					currentState = 1;
+					isRealoading = false;
 				}
 			}
 		}
-
 	}
+
+
 }
 bool Weapon::fire(vector3d& direction, vector3d& camdirection) {
 	if (isRealoading)
@@ -168,7 +171,7 @@ void Weapon::reload() {
 	{
 		isRealoading = true;
 		if (maxMagazineBullets < allBullets) {
-			allBullets -= maxMagazineBullets;
+			allBullets -= (maxMagazineBullets- ammoClip);
 			ammoClip = maxMagazineBullets;
 		}
 		else {
@@ -184,7 +187,7 @@ void Weapon::reload() {
 void Weapon::show(float angleYaw, float anglePitch, float dt) {
 	glDisable(GL_DEPTH_TEST);
 	glPushMatrix();
-	
+
 	glTranslatef(currentPosition.x, currentPosition.y, currentPosition.z);
 	//glRotatef(angle * 57.2957795, 1, 0, 0);
 	glRotatef(-angleYaw * 57.2957795, 0, 1, 0);

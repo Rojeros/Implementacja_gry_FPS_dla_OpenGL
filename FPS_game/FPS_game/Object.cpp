@@ -36,8 +36,8 @@ void Object::draw(std::vector<material> & mainMaterial, std::vector<materialVert
 
 
 	glVertexPointer(3, GL_FLOAT, 0, 0);
-	glNormalPointer(GL_FLOAT, 0, (void*)(vetrexes.size()*sizeof(float)));
-	glTexCoordPointer(2, GL_FLOAT, 0, (void*)(vetrexes.size()*sizeof(float)+normals.size()*sizeof(float)));
+	glNormalPointer(GL_FLOAT, 0, (void*)(vetrexesSize));
+	glTexCoordPointer(2, GL_FLOAT, 0, (void*)(vetrexesSize +normalsSize));
 //
 	for (int i = 0; i < mainMaterialsVertex.size(); i++) {
 
