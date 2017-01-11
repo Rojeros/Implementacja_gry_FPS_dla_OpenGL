@@ -16,13 +16,14 @@ class LevelLoad
 public:
 
 	LevelLoad();
-	Object* loadFromFile(std::string path,bool isTexturFileIsLoad, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex);
-	std::vector<Object*> *animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex,int &frames);
+	Object* loadFromFile(std::string path,bool isTexturFileIsLoad, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*> *collision);
+	std::vector<Object*> *animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*>* collision, int &frames);
 	~LevelLoad();
 private:
 	std::vector<std::string> loadedTextures;
 	std::vector<int> loadedTexturesNum;
-
+	bool isCollisionLoad;
+	std::string lastPath;
 	bool ismaterial, isnormals, istexture, isvertexnormal;
 	int parseMaterial(char* line, const std::string& filename, Object * newObject, std::vector<material> & mainMaterial);
 	int parseMaterialFile(char* line, std::string path, std::vector<std::string>* tmp);

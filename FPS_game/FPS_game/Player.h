@@ -7,6 +7,8 @@
 #include <cmath>
 #include "camera.h"
 #include "Weapon.h"
+#include "WorldObjects.h"
+#include "Collision.h"
 
 static float LOOK_SPEED = 0.005;
 static float WALK_SPEED = 0.1;
@@ -39,7 +41,7 @@ public:
 	void show(float dt);
 	void jump();
 	void lookAt(float dx, float dy);
-	void Player::update(bool * keys, float groundHeight);
+	void Player::update(bool * keys, float groundHeight,WorldObjects * collisions);
 	void decreaseHealth(int num);
 	int getHealth();
 	int getEnergy();

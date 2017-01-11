@@ -16,6 +16,7 @@ public:
 	bool animationEnded();
 	~ObjectContainer();
 	void draw(float dt);
+	std::vector<CollisionPlane*> * collision;
 private:
 	std::vector<Object*> *animation;
 	int frames;

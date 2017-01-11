@@ -113,6 +113,7 @@ void Map::loadHeightMap(char *fileName, float heightFactor)
 			terrain->vertices[i][j].z = -(float)(j);
 
 			terrain->vertices[i][j].y = getColourAt(bitmap,i,j) * heightFactor;
+
 				counter+=3;
 		}
 	}

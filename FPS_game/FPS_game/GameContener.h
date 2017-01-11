@@ -16,6 +16,11 @@
 #include "Object.h"
 #include "Text.h"
 #include "ObjectContainer.h"
+#include <cstdlib>
+#include <ctime>
+#include "WorldObjects.h"
+#include "Collision.h"
+
 class GameContener
 {
 public:
@@ -40,6 +45,7 @@ private:
 	bool gameRunning;
 	bool gamePause;
 	ObjectContainer * enemy;
+	WorldObjects * mapElements;
 	std::vector<material> materials;
 	std::vector<materialVertex> materialsVertex;
 	GameUI *text;

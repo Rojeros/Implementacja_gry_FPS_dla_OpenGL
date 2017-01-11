@@ -144,7 +144,7 @@ bool GameContener::SetupRC()
 	TTF_Init();
 	text = new GameUI(renderer, screen_width, screen_height, 32);
 
-
+	srand(time(NULL));
 
 	return true;
 }
@@ -186,8 +186,18 @@ void GameContener::Render()
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	map->renderTerrain();
+	
 	player->show(dt);
+	mapElements->draw(dt);
 
+	player->getCurrentWeapon()->show(player->getCamera()->getYaw(), player->getCamera()->getPitch(), dt);
+	
+//	std::cout << newpos << "\n";
+
+	//static float move=0;
+	//move += 0.02;
+	//glTranslatef(0, 0, move);
+	//enemy->draw(dt);
 
 	//glTranslatef(30, 0, 0);
 	//enemy[frame]->draw(materials, materialsVertex);
@@ -353,18 +363,29 @@ void GameContener::StartEngine()
 	SDL_Init(0);
 	player = new Player();
 	map->initTerrain("data/heightMap.bmp", 0.1);
-//	enemy = new ObjectContainer("data/2/gun/Handgun_Game_Cycles_",0.5,true);
-
+	enemy = new ObjectContainer("data/2/enemy/hero163.move_",2,true);
+	mapElements = new WorldObjects();
+	mapElements->addModel("data/2/Rock1.obj", 10, map->terrain->width, map->terrain->height);
+	mapElements->addModel("data/2/Tree.obj", 5, map->terrain->width, map->terrain->height);
+	for (int i = 0; i < mapElements->getSize(); i++){
+		vector3d tmp= mapElements->getPosition(i);
+		tmp.changeY(map->getTerrainHeight(tmp.getX(), tmp.getZ()));
+		mapElements->setHeight(i,tmp.getY());
+	}
 	return;
 }
 void GameContener::DoEngine()
 {
 	if (gamePause || !gameRunning)
 		return;
-	player->update(keys, map->getTerrainHeight(player->getX(), player->getZ()));
+	
+	player->update(keys, map->getTerrainHeight(player->getX(), player->getZ()),mapElements);
+	
 	text->changeValues(player->getHealth(), player->getEnergy(), player->getCurrentWeapon()->getAmmoClip(), player->getCurrentWeapon()->getAllBullets(), player->getPoints(), player->getCurrentWeapon()->getName(), "0.lvl0", framespersecond);
+	
 
-	return;
+	
+		return;
 }
 void GameContener::WaitFrame(int fps)
 {

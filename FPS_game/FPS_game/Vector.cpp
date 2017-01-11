@@ -95,6 +95,8 @@ void vector3d::changeZ(float c)
 }
 
 
+
+
 void vector3d::normalize()
 {
 	float len = length();

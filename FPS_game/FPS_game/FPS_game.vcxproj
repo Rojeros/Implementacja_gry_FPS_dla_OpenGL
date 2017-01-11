@@ -203,6 +203,7 @@ copy "$(SolutionDir)lib\$(PlatformTargetAsMSBuildArchitecture)\zlib1.dll" "$(Out
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="Vector.cpp" />
     <ClCompile Include="Weapon.cpp" />
+    <ClCompile Include="WorldObjects.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -218,6 +219,7 @@ copy "$(SolutionDir)lib\$(PlatformTargetAsMSBuildArchitecture)\zlib1.dll" "$(Out
     <ClInclude Include="Text.h" />
     <ClInclude Include="Vector.h" />
     <ClInclude Include="Weapon.h" />
+    <ClInclude Include="WorldObjects.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\..\Desktop\Przykłady\Rozdział 13\data\heightMap.bmp" />

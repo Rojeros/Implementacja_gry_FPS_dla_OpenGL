@@ -28,7 +28,7 @@ Camera* Player::getCamera()
 void Player::show(float dt)
 {
 	cam->refresh();
-	arsenal->at(0).show(cam->getYaw(),cam->getPitch(),dt);
+	
 }
 
 void Player::jump()
@@ -62,7 +62,7 @@ void Player::teleport()
 
 
 
-void Player::update(bool * keys, float groundHeight)
+void Player::update(bool * keys, float groundHeight, WorldObjects * collisions)
 {
 	float modifier = 1;
 	if (keys[SDL_SCANCODE_LSHIFT] == 1 || SDL_SCANCODE_RSHIFT == 1) {
@@ -141,8 +141,20 @@ void Player::update(bool * keys, float groundHeight)
 	vector3d newpos(cam->getLocation());
 
 	newpos += direction;
-	//if (newpos.getY() < groundHeight)
-	//	newpos.changeY(groundHeight+0.5);
+
+	for (int i = 0; i < collisions->getSize(); i++) {
+		for (int j = 0; j < 6; j++) {
+			if (Collision::sphereplane(newpos,
+				collisions->getCollisonPLane(i, j)->getnormal(),
+				collisions->getCollisonPLane(i, j)->get1point(),
+				collisions->getCollisonPLane(i, j)->get2point(),
+				collisions->getCollisonPLane(i, j)->get3point(),
+				collisions->getCollisonPLane(i, j)->get4point(), 1.5)) {
+			}
+			
+		//	std::cout << collisions->getCollisonPLane(i, j)->get1point() << " " << collisions->getCollisonPLane(i, j)->get2point() << " " << collisions->getCollisonPLane(i, j)->get3point() << " " << collisions->getCollisonPLane(i, j)->get4point() << "\n";
+		}
+	}
 
 	cam->setLocation(newpos);
 	direction.change(0, 0, 0);

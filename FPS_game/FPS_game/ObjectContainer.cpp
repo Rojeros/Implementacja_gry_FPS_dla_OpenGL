@@ -6,7 +6,8 @@ ObjectContainer::ObjectContainer(std::string path, float time, bool isLooped):cu
 {
 
 	LevelLoad a;
-	animation=a.animation(path, mainMaterial, mainMaterialsVertex,frames);
+	collision = new std::vector<CollisionPlane*>();
+	animation=a.animation(path, mainMaterial, mainMaterialsVertex,collision,frames);
 
 	timePerFrame = time / (float)frames;
 

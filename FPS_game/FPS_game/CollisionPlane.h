@@ -30,11 +30,12 @@ public:
 	/// <param name="l"> 	The float to process. </param>
 
 	CollisionPlane(float n1, float n2, float n3, float a, float b, float c, float d, float e, float f, float g, float h, float i, float j, float k, float l);
+	CollisionPlane(vector3d normal,vector3d p1,vector3d p2,vector3d p3,vector3d p4);
 
 	/// <summary>	Gets the 1point. </summary>
 	///
 	/// <returns>	The 1point. </returns>
-
+	void addAndScale(float a, float b);
 	vector3d get1point();
 
 	/// <summary>	Gets the 2point. </summary>

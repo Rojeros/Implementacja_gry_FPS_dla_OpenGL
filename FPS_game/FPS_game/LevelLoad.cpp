@@ -23,7 +23,7 @@ material::material(const char* na, float al, float n, float ni2, float* d, float
 	illum = i;
 	texture = t;
 }
-LevelLoad::LevelLoad()
+LevelLoad::LevelLoad() :isCollisionLoad(false)
 {
 
 }
@@ -237,7 +237,7 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 
 	return 1;
 }
-Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex)
+Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*> *collision)
 {
 	//temp array for create buffer of normal's vertex
 	std::vector<vector3d > normalsTemp;
@@ -303,16 +303,22 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 		else if (buf[0] == 'f')	//add face
 		{
 
-			if (coll)	//if collisionplane is exist in file, add to structure
+			if (coll )	//if collisionplane is exist in file, add to structure
 			{
+				if (path != lastPath) {
+					isCollisionLoad = true;
+				}
 				int v[4], n[4];
 				sscanf_s(buf, "f %d//%d %d//%d %d//%d %d//%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2], &v[3], &n[3]);
-				newObject->collplane.push_back(
-					CollisionPlane(normalsTemp[n[0] - 1].getX(), normalsTemp[n[0] - 1].getY(), normalsTemp[n[0] - 1].getZ(),
+				if(!isCollisionLoad){
+				collision->push_back(new CollisionPlane(
+						normalsTemp[n[0] - 1].getX(), normalsTemp[n[0] - 1].getY(), normalsTemp[n[0] - 1].getZ(),
 						vetrexesTmp[v[0] - 1].getX(), vetrexesTmp[v[0] - 1].getY(), vetrexesTmp[v[0] - 1].getZ(),
 						vetrexesTmp[v[1] - 1].getX(), vetrexesTmp[v[1] - 1].getY(), vetrexesTmp[v[1] - 1].getZ(),
 						vetrexesTmp[v[2] - 1].getX(), vetrexesTmp[v[2] - 1].getY(), vetrexesTmp[v[2] - 1].getZ(),
 						vetrexesTmp[v[3] - 1].getX(), vetrexesTmp[v[3] - 1].getY(), vetrexesTmp[v[3] - 1].getZ()));
+				lastPath = path;
+				}
 
 
 			}
@@ -479,7 +485,7 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 			char tmp[200];
 
 			sscanf_s(buf, "usemtl %s", tmp, 200);
-			if (strcmp(tmp, "collision") == 0)	//hack -> add collision 
+			if (strcmp(tmp, "collision") == 0 )	//hack -> add collision 
 			{
 				coll = true;
 			}
@@ -573,7 +579,7 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 	return newObject;
 }
 
-std::vector<Object*>* LevelLoad::animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, int &frames)
+std::vector<Object*>* LevelLoad::animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*>* collision, int &frames)
 {
 
 	std::vector<Object*>* anim=new std::vector<Object*>();
@@ -582,10 +588,12 @@ std::vector<Object*>* LevelLoad::animation(std::string path, std::vector<materia
 	int i = 1;
 	bool stop = false;
 	if (stat(path.c_str(), &buffer) == 0) {
-		anim->push_back(loadFromFile(path, false, mainMaterial, mainMaterialsVertex));
+		lastPath = path;
+		anim->push_back(loadFromFile(path, false, mainMaterial, mainMaterialsVertex,collision));
 		counter++;
 	}
 	else {
+
 		do {
 			std::string newpath = path;
 			int digits = (i > 0 ? (int)log10((double)i) + 1 : 1);
@@ -595,7 +603,10 @@ std::vector<Object*>* LevelLoad::animation(std::string path, std::vector<materia
 			newpath += std::to_string(i) + ".obj";
 
 			if (stat(newpath.c_str(), &buffer) == 0) {
-				anim->push_back(loadFromFile(newpath, i != 1, mainMaterial, mainMaterialsVertex));
+				if(i==1)
+				lastPath = newpath;
+
+				anim->push_back(loadFromFile(newpath, i != 1, mainMaterial, mainMaterialsVertex,collision));
 				i++;
 				counter++;
 			}
