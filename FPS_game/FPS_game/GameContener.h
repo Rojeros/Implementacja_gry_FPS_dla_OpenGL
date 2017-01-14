@@ -20,6 +20,7 @@
 #include <ctime>
 #include "WorldObjects.h"
 #include "Collision.h"
+#include "Enemy.h"
 
 class GameContener
 {
@@ -44,7 +45,7 @@ private:
 	int full_screen;
 	bool gameRunning;
 	bool gamePause;
-	ObjectContainer * enemy;
+	std::vector<Enemy*> enemy;
 	WorldObjects * mapElements;
 	std::vector<material> materials;
 	std::vector<materialVertex> materialsVertex;

@@ -2,19 +2,23 @@
 #include <SDL.h>
 
 
-Player::Player():health(100),energy(100), isSprint(false),points(0),dx(0),dy(0), isJump(false), jumpHeight(0)
+Player::Player(vector3d position,int points):health(100),energy(100), isSprint(false),points(points),dx(0),dy(0), isJump(false), jumpHeight(0)
 {
 	
 	force.change(0.0, -0.45, 0.0);
 	//direction.change(0.0, 0.0, 0.0);
 	cam = new Camera();
-	arsenal = new std::vector<Weapon>();
-	arsenal->push_back(Weapon("pistol",0.5,true, 50, 300, 5, 12, 1000, 1000, "data/2/gun/Handgun_Game_Cycles_"));
+	cam->setLocation(position);
+	startPoint = position;
+	arsenal = new std::vector<Weapon*>();
+	currentWeaponNUmber = 0;
 
 }
 
 Player::~Player()
 {
+
+	//TODO: delete all arsenal
 	//delete cam;
 }
 
@@ -103,7 +107,8 @@ void Player::update(bool * keys, float groundHeight, WorldObjects * collisions)
 	//	teleport();
 		}
 	if (keys[SDL_SCANCODE_R] == 1) {
-		arsenal->at(0).reload();
+		if (!arsenal->empty())
+		arsenal->at(currentWeaponNUmber)->reload();
 	}
 	if (keys[SDL_SCANCODE_SPACE] == 1) {
 		jump();
@@ -142,24 +147,27 @@ void Player::update(bool * keys, float groundHeight, WorldObjects * collisions)
 
 	newpos += direction;
 
-	for (int i = 0; i < collisions->getSize(); i++) {
-		for (int j = 0; j < 6; j++) {
-			if (Collision::sphereplane(newpos,
-				collisions->getCollisonPLane(i, j)->getnormal(),
-				collisions->getCollisonPLane(i, j)->get1point(),
-				collisions->getCollisonPLane(i, j)->get2point(),
-				collisions->getCollisonPLane(i, j)->get3point(),
-				collisions->getCollisonPLane(i, j)->get4point(), 1.5)) {
+	if (collisions != NULL) {
+		for (int i = 0; i < collisions->getSize(); i++) {
+			for (int j = 0; j < 6; j++) {
+				if (Collision::sphereplane(newpos,
+					collisions->getCollisonPLane(i, j)->getnormal(),
+					collisions->getCollisonPLane(i, j)->get1point(),
+					collisions->getCollisonPLane(i, j)->get2point(),
+					collisions->getCollisonPLane(i, j)->get3point(),
+					collisions->getCollisonPLane(i, j)->get4point(), 1.5)) {
+				}
 			}
-			
-		//	std::cout << collisions->getCollisonPLane(i, j)->get1point() << " " << collisions->getCollisonPLane(i, j)->get2point() << " " << collisions->getCollisonPLane(i, j)->get3point() << " " << collisions->getCollisonPLane(i, j)->get4point() << "\n";
+			//	std::cout << collisions->getCollisonPLane(i, j)->get1point() << " " << collisions->getCollisonPLane(i, j)->get2point() << " " << collisions->getCollisonPLane(i, j)->get3point() << " " << collisions->getCollisonPLane(i, j)->get4point() << "\n";
 		}
 	}
+	
 
 	cam->setLocation(newpos);
 	direction.change(0, 0, 0);
 
-	arsenal->at(0).update(newpos);
+	if (!arsenal->empty())
+	arsenal->at(currentWeaponNUmber)->update(newpos);
 
 }
 
@@ -207,7 +215,44 @@ void Player::addPoints(int num)
 
 Weapon * Player::getCurrentWeapon()
 {
-	return &arsenal->at(0);
+	if (arsenal != NULL)
+	return arsenal->at(currentWeaponNUmber);
+}
+
+void Player::addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path)
+{
+	arsenal->push_back(new Weapon(name,speed,isAutomatic,power,allBullets,ammoClip,maxMagazineBullets,precision,aimprecision,path));
+	currentWeaponNUmber = arsenal->size() - 1;
+}
+
+void Player::nextWeapon()
+{
+	if (!arsenal->empty()) {
+		currentWeaponNUmber++;
+		if (currentWeaponNUmber>arsenal->size()-1) {
+			currentWeaponNUmber = 0;
+		}
+	}
+}
+
+void Player::previousWeapon()
+{
+	if (arsenal != NULL) {
+		currentWeaponNUmber--;
+		if (currentWeaponNUmber<0 ) {
+			currentWeaponNUmber = arsenal->size() - 1;
+		}
+	}
+}
+
+bool Player::haveAnyGun()
+{
+	if (!arsenal->empty()) {
+	return true;
+	}
+	else {
+		return false;
+	}
 }
 
 int Player::getPoints()
@@ -231,7 +276,7 @@ bool Player::isDead()
 
 void Player::resetPlayer()
 {
-	setHealth(1500);
+	setHealth(100);
 	setPosition(startPoint);
 	points = 0;
 }

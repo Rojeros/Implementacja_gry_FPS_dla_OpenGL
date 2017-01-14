@@ -1,4 +1,24 @@
 #include "weapon.h"
+Weapon::Weapon()
+{
+	this->precision = 0;
+	this->aimprecision = 0;
+
+	this->speed = 0;
+	this->power = 0;
+	this->allBullets = 0;
+	this->ammoClip = 0;
+	this->isAutomatic = 0;
+	this->maxMagazineBullets = 0;
+	this->name = "";
+
+	normalStateAnimation = NULL;
+	fireStateAnimation = NULL;
+	reloadStateAnimation = NULL;
+	lastShot = 0;
+	isAim = false;
+	isRealoading = false;
+}
 Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path) {
 
 	this->precision = precision;
@@ -26,6 +46,14 @@ Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned 
 	setCurrentPosition(vector3d(-0.06, 0.13, 0.13));
 	setCurrentRotation(vector3d(0, 0, 0));
 
+}
+
+Weapon::~Weapon()
+{
+	
+	delete normalStateAnimation;
+	delete fireStateAnimation;
+	delete reloadStateAnimation;
 }
 
 void Weapon::setName(std::string name_p) {

@@ -207,10 +207,13 @@ void Map::freeTerrain()
 
 void Map::renderTerrain()
 {
+	glPushMatrix();
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, terrain->terrainTexture);
 	glCallList(terrain->terrainList);
 	glDisable(GL_TEXTURE_2D);
+	glPopMatrix();
+
 }
 
 

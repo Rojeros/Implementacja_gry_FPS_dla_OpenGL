@@ -33,8 +33,9 @@ class Weapon {
 	unsigned int lastShot;
 
 public:
-
+	Weapon();
 	Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision,std::string path);
+	~Weapon();
 	void setName(std::string name_p);
 	
 	void setCurrentPosition(vector3d currentPosition_p);

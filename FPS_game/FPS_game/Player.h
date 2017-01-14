@@ -32,10 +32,11 @@ private:
 	Camera * cam;
 	float dx, dy;
 	float dvx, dvy;
-	std::vector<Weapon> *arsenal;
+	std::vector<Weapon*> *arsenal;
+	int currentWeaponNUmber;
 
 public:
-	Player();
+	Player(vector3d position, int points);
 	~Player();
 	Camera* getCamera();
 	void show(float dt);
@@ -50,7 +51,10 @@ public:
 	void setStartPosition(vector3d pos);
 	void addPoints(int num);
 	Weapon *getCurrentWeapon();
-	bool isGroundCollision();
+	void addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path);
+	void nextWeapon();
+	void previousWeapon();
+	bool haveAnyGun();
 	bool isDead();
 	int getPoints();
 	void teleport();

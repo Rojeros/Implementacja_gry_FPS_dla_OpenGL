@@ -22,6 +22,7 @@ void Camera::init()
 
 void Camera::refresh()
 {
+	
 	// Camera parameter according to Riegl's co-ordinate system
 	m_lx = cos(m_yaw) * cos(m_pitch);
 	m_ly = sin(m_pitch);
@@ -34,6 +35,7 @@ void Camera::refresh()
 	glLoadIdentity();
 
 	gluLookAt(location.x, location.y, location.z, location.x + m_lx, location.y + m_ly, location.z + m_lz, 0.0, 1.0, 0.0);
+
 }
 
 
