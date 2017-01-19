@@ -12,6 +12,7 @@ class Weapon {
 	ObjectContainer * normalStateAnimation;
 	ObjectContainer * fireStateAnimation;
 	ObjectContainer * reloadStateAnimation;
+	ObjectContainer * bulletAnimation;
 	unsigned int allBullets;
 	bool isFired;
 	bool isRealoading;
@@ -54,6 +55,7 @@ public:
 	vector3d getCurrentRotation();
 	vector3d getPosition();
 	vector3d getRotation();
+	ObjectContainer * getBulletAnimation();
 	unsigned int getMaxMagazineBullets();
 	unsigned int getAmmoClip();
 	unsigned int getAllBullets();

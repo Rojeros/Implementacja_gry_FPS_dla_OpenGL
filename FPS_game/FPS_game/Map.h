@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector.h"
 #include "Collision.h"
+#include "CollisionPlane.h"
 
 struct cellIndex
 {
@@ -10,15 +11,15 @@ struct cellIndex
 typedef struct terrainT
 {
 	int terrainList;
-	int terrainTexture;
+	int terrainTexture[2];
 	int width, height;
 	vector3d **vertices;
 	terrainT(int a, int b, int c) {
 		terrainList = a;
 		width = b;
 		height = c;
-		terrainTexture=0;
-		
+		terrainTexture[0]=0;
+		terrainTexture[1] = 0;
 	}
 };
 
@@ -44,17 +45,19 @@ static vector3d getNormal(vector3d vertex1, vector3d vertex2, vector3d vertex3)
 }
 class Map
 {
+
 public:
 	Map();
 	~Map();
 	terrainT *terrain;
-
+	CollisionPlane * box[6];
 
 
 	void loadHeightMap(char *fileName, float heightFactor);
 	void initTerrain(char *fileName, float heightFactor);
 	void freeTerrain();
 	void renderTerrain();
+	CollisionPlane ** getBox();
 	float getTerrainHeight( float x, float z);
 	cellIndex Map::getActiveTriangle( float x, float z);
 	static vector2D lastPosition;

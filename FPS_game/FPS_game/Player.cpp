@@ -13,6 +13,7 @@ Player::Player(vector3d position,int points):health(100),energy(100), isSprint(f
 	arsenal = new std::vector<Weapon*>();
 	currentWeaponNUmber = 0;
 
+
 }
 
 Player::~Player()
@@ -66,7 +67,7 @@ void Player::teleport()
 
 
 
-void Player::update(bool * keys, float groundHeight, WorldObjects * collisions)
+void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObjects * collisions, Map*map)
 {
 	float modifier = 1;
 	if (keys[SDL_SCANCODE_LSHIFT] == 1 || SDL_SCANCODE_RSHIFT == 1) {
@@ -106,12 +107,26 @@ void Player::update(bool * keys, float groundHeight, WorldObjects * collisions)
 	if (keys[SDL_SCANCODE_F] == 1 ) {
 	//	teleport();
 		}
-	if (keys[SDL_SCANCODE_R] == 1) {
-		if (!arsenal->empty())
+	if (keys[SDL_SCANCODE_R] == 1 && keysChange[SDL_SCANCODE_R]==0) {
+		if (!arsenal->empty()){
 		arsenal->at(currentWeaponNUmber)->reload();
+		keysChange[SDL_SCANCODE_R] = 1;
+		}
 	}
 	if (keys[SDL_SCANCODE_SPACE] == 1) {
 		jump();
+	}
+	if (keys[SDL_SCANCODE_Q] == 1 && keysChange[SDL_SCANCODE_Q] == 0) {
+		if (!arsenal->empty()){
+			previousWeapon();
+			keysChange[SDL_SCANCODE_Q] = 1;
+		}
+	}
+	if (keys[SDL_SCANCODE_E] == 1 && keysChange[SDL_SCANCODE_E] == 0) {
+		if (!arsenal->empty()){
+			nextWeapon();
+			keysChange[SDL_SCANCODE_E] = 1;
+		}
 	}
 
 
@@ -146,23 +161,31 @@ void Player::update(bool * keys, float groundHeight, WorldObjects * collisions)
 	vector3d newpos(cam->getLocation());
 
 	newpos += direction;
-
+	
 	if (collisions != NULL) {
 		for (int i = 0; i < collisions->getSize(); i++) {
 			for (int j = 0; j < 6; j++) {
-				if (Collision::sphereplane(newpos,
+			Collision::sphereplane(newpos,
 					collisions->getCollisonPLane(i, j)->getnormal(),
 					collisions->getCollisonPLane(i, j)->get1point(),
 					collisions->getCollisonPLane(i, j)->get2point(),
 					collisions->getCollisonPLane(i, j)->get3point(),
-					collisions->getCollisonPLane(i, j)->get4point(), 1.5)) {
-				}
+					collisions->getCollisonPLane(i, j)->get4point(), 1.5);
+		
+
+				
 			}
 			//	std::cout << collisions->getCollisonPLane(i, j)->get1point() << " " << collisions->getCollisonPLane(i, j)->get2point() << " " << collisions->getCollisonPLane(i, j)->get3point() << " " << collisions->getCollisonPLane(i, j)->get4point() << "\n";
 		}
 	}
-	
-
+	for (int i = 0; i < 6; i++) {
+		Collision::sphereplane(newpos,
+			map->getBox()[i]->getnormal(),
+			map->getBox()[i]->get1point(),
+			map->getBox()[i]->get2point(),
+			map->getBox()[i]->get3point(),
+			map->getBox()[i]->get4point(), 1.5);
+	}
 	cam->setLocation(newpos);
 	direction.change(0, 0, 0);
 
@@ -212,6 +235,8 @@ void Player::addPoints(int num)
 {
 	points += num;
 }
+
+
 
 Weapon * Player::getCurrentWeapon()
 {

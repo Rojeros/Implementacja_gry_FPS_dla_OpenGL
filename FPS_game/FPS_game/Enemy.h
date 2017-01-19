@@ -13,30 +13,14 @@
 #include <math.h>
 #include "ObjectContainer.h"
 #include "WorldObjects.h"
-
+#include "BulletFactory.h"
+class BulletFactory;
 enum CurrentState
 {
 	wait = 0,
 	walk = 1,
 	attack = 2
 
-};
-/// <summary>	A collisionsphere. </summary>
-class collisionsphere {
-public:
-	/// <summary>	The float to process. </summary>
-	float r;
-	/// <summary>	The center. </summary>
-	vector3d center;
-
-	/// <summary>	Constructor. </summary>
-	///
-	/// <param name="c">  	The vector3d to process. </param>
-	/// <param name="rad">	The radians. </param>
-
-	collisionsphere(vector3d c, float rad);
-	/// <summary>	Default constructor. </summary>
-	collisionsphere();
 };
 
 
@@ -53,6 +37,7 @@ class Enemy
 	/// <summary>	The die. </summary>
 	ObjectContainer * wait;
 	ObjectContainer * currentAnimation;
+	ObjectContainer * bulletAnimation;
 	/// <summary>	The timer. </summary>
 	unsigned int timer;
 	/// <summary>	The health. </summary>
@@ -86,7 +71,7 @@ public:
 	Enemy(int health, float speed, int strength, collisionsphere c, vector3d rot, vector3d playerloc, Enemy * copy, float walkTime, float attackTime, float waitTime);
 
 	~Enemy();
-	bool update(float groundHeight, WorldObjects * collisions, vector3d playerpos);
+	bool update(float groundHeight, WorldObjects * collisions, vector3d playerpos,BulletFactory * bullets);
 	void show(float dt);
 	collisionsphere* getSphere();
 

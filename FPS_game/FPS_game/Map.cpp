@@ -1,10 +1,7 @@
 #include "Map.h"
 #include <windows.h>
 #include <stdio.h>
-
-#include <gl\gl.h>
-#include <gl\glu.h>
-
+#include <GL/glew.h>
 #include <SDL.h>
 
 vector2D Map::lastPosition;
@@ -173,19 +170,44 @@ void Map::initTerrain(char *fileName, float heightReducingFactor)
 	}
 	glEnd();
 
+	
+
+
 	glEndList();
 
 	glEnable(GL_TEXTURE_2D);
 	//TODO: change to freeimage
 	SDL_Surface * tex= SDL_LoadBMP("data/grass2.bmp");
 	tex = SDL_ConvertSurfaceFormat(tex, SDL_PIXELFORMAT_RGB24, 0);
-	glGenTextures(1, (GLuint*)&terrain->terrainTexture);
-	glBindTexture(GL_TEXTURE_2D, (GLuint)terrain->terrainTexture);
+	glGenTextures(1, (GLuint*)&terrain->terrainTexture[0]);
+	glBindTexture(GL_TEXTURE_2D, (GLuint)terrain->terrainTexture[0]);
 
 	gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB, tex->w, tex->h, GL_RGB, GL_UNSIGNED_BYTE, tex->pixels);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glDisable(GL_TEXTURE_2D);
+
+
+	glEnable(GL_TEXTURE_2D);
+	//TODO: change to freeimage
+	SDL_Surface * tex2 = SDL_LoadBMP("data/water.bmp");
+	tex2 = SDL_ConvertSurfaceFormat(tex2, SDL_PIXELFORMAT_RGB24, 0);
+	glGenTextures(1, (GLuint*)&terrain->terrainTexture[1]);
+	glBindTexture(GL_TEXTURE_2D, (GLuint)terrain->terrainTexture[1]);
+
+	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, tex2->w, tex2->h, GL_RGB, GL_UNSIGNED_BYTE, tex2->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glDisable(GL_TEXTURE_2D);
+
+
+	box[0] = new CollisionPlane(vector3d(0,0,1),	vector3d(0,100,0), vector3d(terrain->width,100,0), vector3d(terrain->width,-100,0), vector3d(0,-100,0));
+	box[1] = new CollisionPlane(vector3d(1,0,0),	vector3d(terrain->width,100,0), vector3d(terrain->width,100, -terrain->height), vector3d(terrain->width,-100, -terrain->height), vector3d(terrain->width,-100,0));
+	box[2] = new CollisionPlane(vector3d(0,0,-1),	vector3d(0,100,-terrain->height), vector3d(terrain->width,100, -terrain->height), vector3d(terrain->width,-100, -terrain->height), vector3d(0,-100, -terrain->height));
+	box[3] = new CollisionPlane(vector3d(-1,0,0),	vector3d(0,100,0), vector3d(0,100, -terrain->height), vector3d(0,-100, terrain->height), vector3d(0,-100,0));
+	box[4] = new CollisionPlane(vector3d(0,1,0),	vector3d(0,100,0), vector3d(0,100, -terrain->height), vector3d(terrain->width,100, -terrain->height), vector3d(terrain->width,100,0));
+	box[5] = new CollisionPlane(vector3d(0,-1,0),	vector3d(0,-100,0), vector3d(terrain->width,-100,0), vector3d(terrain->width,-100, -terrain->height), vector3d(0,-100, -terrain->height));
+
 }
 
 
@@ -209,11 +231,32 @@ void Map::renderTerrain()
 {
 	glPushMatrix();
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, terrain->terrainTexture);
+	glBindTexture(GL_TEXTURE_2D, terrain->terrainTexture[0]);
 	glCallList(terrain->terrainList);
+
+	glBindTexture(GL_TEXTURE_2D, terrain->terrainTexture[1]);
+	glBegin(GL_QUADS);
+
+	//glColor3f(0, 0, 0.6);
+	glTexCoord2f(1.0f, 0.0f);
+	glVertex3f((terrain->width * 3), -20, (terrain->height*(3)));
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3f((terrain->width * 3), -20, (terrain->height*(-3)));
+	glTexCoord2f(0.0f, 1.0f);
+	glVertex3f((terrain->width * (-3)), -20, ((terrain->height*(-3))));
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex3f((terrain->width * (-3)), -20, (terrain->height*(3)));
+
+	glEnd();
 	glDisable(GL_TEXTURE_2D);
+
 	glPopMatrix();
 
+}
+
+CollisionPlane ** Map::getBox()
+{
+	return box;
 }
 
 

@@ -2,6 +2,25 @@
 #include "vector.h"
 #include <cmath>
 
+/// <summary>	A collisionsphere. </summary>
+class collisionsphere {
+public:
+	/// <summary>	The float to process. </summary>
+	float r;
+	/// <summary>	The center. </summary>
+	vector3d center;
+
+	/// <summary>	Constructor. </summary>
+	///
+	/// <param name="c">  	The vector3d to process. </param>
+	/// <param name="rad">	The radians. </param>
+
+	collisionsphere(vector3d c, float rad);
+	/// <summary>	Default constructor. </summary>
+	collisionsphere();
+};
+
+
 class Collision {
 public:
 	static bool sphereplane(vector3d& sp, vector3d pn, vector3d p1, vector3d p2, vector3d p3, vector3d p4, float r);

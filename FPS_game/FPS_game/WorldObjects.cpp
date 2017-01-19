@@ -33,6 +33,7 @@ void WorldObjects::setHeight(int number, float height)
 
 void WorldObjects::draw(float dt)
 {
+
 	for (int i = 0; i < worldContainer.size(); i++) {
 		glPushMatrix();
 		glTranslatef(worldContainer[i].position.x, worldContainer[i].position.y , worldContainer[i].position.z);

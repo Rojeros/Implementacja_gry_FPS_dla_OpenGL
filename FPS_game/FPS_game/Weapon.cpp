@@ -35,6 +35,7 @@ Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned 
 	normalStateAnimation = new ObjectContainer("data/2/gun/Handgun_Game_Cycles_000004.obj", speed, true);
 	fireStateAnimation = new ObjectContainer("data/2/gun/Handgun_Game_Cycles_000001.obj", speed, false);
 	reloadStateAnimation = new ObjectContainer("data/2/gun/Handgun_Game_Cycles_000001.obj", speed, false);
+	bulletAnimation = new ObjectContainer("data/2/gun/bullet.obj", speed, false);
 	lastShot = 0;
 	isAim = false;
 	isRealoading = false;
@@ -112,6 +113,10 @@ vector3d Weapon::getPosition() {
 }
 vector3d Weapon::getRotation() {
 	return rotation;
+}
+ObjectContainer * Weapon::getBulletAnimation()
+{
+	return bulletAnimation;
 }
 unsigned int Weapon::getMaxMagazineBullets() {
 	return maxMagazineBullets;

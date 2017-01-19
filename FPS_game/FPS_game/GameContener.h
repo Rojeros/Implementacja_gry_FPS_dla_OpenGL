@@ -21,6 +21,8 @@
 #include "WorldObjects.h"
 #include "Collision.h"
 #include "Enemy.h"
+#include <list>
+#include "BulletFactory.h"
 
 class GameContener
 {
@@ -40,12 +42,14 @@ private:
 	Player * player;
 	Map * map;
 	bool keys[282];
+	bool keysChange[282];
 	int screen_width  ;
 	int screen_height ;
 	int full_screen;
 	bool gameRunning;
 	bool gamePause;
-	std::vector<Enemy*> enemy;
+	std::list<Enemy*> * enemy;
+	BulletFactory * bullets;
 	WorldObjects * mapElements;
 	std::vector<material> materials;
 	std::vector<materialVertex> materialsVertex;

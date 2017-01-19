@@ -2,7 +2,7 @@
 
 Text::Text(SDL_Renderer * renderer, int width, int height, int fontSize) :renderer(renderer), width(width), height(height), fontSize(fontSize)
 {
-	font = TTF_OpenFont("/Users/Rojeros/Source/Repos/Implementacja_gry_FPS_dla_OpenGL/FPS_game/FPS_game/data/arial.ttf", fontSize);
+	font = TTF_OpenFont("data/arial.ttf", fontSize);
 }
 
 Text::~Text()

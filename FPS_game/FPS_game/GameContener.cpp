@@ -181,24 +181,26 @@ void GameContener::Render()
 	float dt = ((float)delta) / 1000.f;
 
 	
+	
 	player->show(dt);
 	
 	//std::cout<<player->getCamera()->getLocation();
 	
-	for (int i = 0; i < enemy.size();i++){
+	for (std::list<Enemy*>::iterator it = enemy->begin(); it != enemy->end(); it++) {
 	
-	enemy[i]->show(dt);
+	(*it)->show(dt);
 
 	}
-
-//	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-
-	map->renderTerrain();
-
+	bullets->update(dt, player, enemy, map);
 	
+	bullets->draw();
+	//glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	mapElements->draw(dt);
-
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	map->renderTerrain();
+	
+	
+	
 	
 
 //	std::cout << newpos << "\n";
@@ -266,6 +268,7 @@ void GameContener::HandleKeyDown(SDL_Keysym* keysym)
 void GameContener::HandleKeyUp(SDL_Keysym* keysym)
 {
 	keys[keysym->scancode] = 0;
+	keysChange[keysym->scancode] = 0;
 
 	return;
 }
@@ -288,6 +291,9 @@ void GameContener::MouseClick(SDL_MouseButtonEvent * click)
 		vector3d shotDirection;
 		isshot = player->getCurrentWeapon()->fire(shotDirection,player->getCamera()->getDirectionVector());
 		shotDirection.normalize();
+		if (isshot) {
+			bullets->addBullet(collisionsphere(player->getCamera()->getLocation()+shotDirection*1.5,0.5), shotDirection, 3, 10, player->getCurrentWeapon()->getPower(),player->getCurrentWeapon()->getBulletAnimation());
+		}
 	}
 	
 }
@@ -377,14 +383,17 @@ void GameContener::StartEngine()
 {
 	SDL_Init(0);
 	player = new Player(vector3d(0,10,0),0);
-	//player->addWeapon("pistol", 0.5, true, 50, 300, 5, 12, 1000, 1000, "data/2/gun/Handgun_Game_Cycles_");
+	player->addWeapon("pistol", 0.5, true, 50, 300, 5, 12, 1000, 1000, "data/2/gun/Handgun_Game_Cycles_");
+	player->addWeapon("lotsip", 0.5, true, 150, 300, 5, 12, 1000, 1000, "data/2/gun/Handgun_Game_Cycles_");
 	map->initTerrain("data/heightMap.bmp", 0.1);
-	enemy.push_back(new Enemy(100,0.1,10,collisionsphere(vector3d(100,100,100),2),vector3d(0,0,0),player->getCamera()->getLocation(),"data/2/enemy/hero163",1,4,0.5));
-	enemy.push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(-100, 100, -100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(),enemy[0], 1, 4, 0.5));
-	enemy.push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(-100, 100, 100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), enemy[0], 1, 4, 0.5));
-	enemy.push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(100, 100, -100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), enemy[0], 1, 4, 0.5));
-	enemy.push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(0, 100, 0), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), enemy[0], 1, 4, 0.5));
+	enemy = new std::list<Enemy*>;
+	enemy->push_back(new Enemy(100,0.1,10,collisionsphere(vector3d(100,100,100),2),vector3d(0,0,0),player->getCamera()->getLocation(),"data/2/enemy/hero163",1,4,0.5));
 
+	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(-100, 100, -100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), (enemy->front()), 1, 4, 0.5));
+	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(-100, 100, 100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), (enemy->front()), 1, 4, 0.5));
+	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(100, 100, -100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), (enemy->front()), 1, 4, 0.5));
+	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(0, 100, 0), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), (enemy->front()), 1, 4, 0.5));
+	bullets = new BulletFactory();
 	
 		mapElements = new WorldObjects();
 	mapElements->addModel("data/2/Rock1.obj", 10, map->terrain->width, map->terrain->height);
@@ -402,10 +411,24 @@ void GameContener::DoEngine()
 	if (gamePause || !gameRunning)
 		return;
 	
-	player->update(keys, map->getTerrainHeight(player->getX(), player->getZ()),mapElements);
-	for (int i = 0; i < enemy.size(); i++) {
-		enemy[i]->update(map->getTerrainHeight(enemy[i]->getSphere()->center.getX(), enemy[i]->getSphere()->center.getZ()), mapElements, player->getCamera()->getLocation());
+	player->update(keys,keysChange, map->getTerrainHeight(player->getX(), player->getZ()),mapElements,map);
+	for (std::list<Enemy*>::iterator it = enemy->begin(); it != enemy->end(); it++) {
+		(*it)->update(map->getTerrainHeight((*it)->getSphere()->center.getX(), (*it)->getSphere()->center.getZ()), mapElements, player->getCamera()->getLocation(),bullets);
 	}
+	std::list<Enemy*>::iterator it = enemy->begin();
+	while(it != enemy->end()) {
+		if ((*it)->isDead()) {
+			it = enemy->erase(it);
+		}
+		else
+		{
+			it++;
+		}
+
+	}
+
+
+
 	if(player->haveAnyGun()){
 	text->changeValues(player->getHealth(), player->getEnergy(), player->getCurrentWeapon()->getAmmoClip(), player->getCurrentWeapon()->getAllBullets(), player->getPoints(), player->getCurrentWeapon()->getName(), "0.lvl0", framespersecond);
 	}

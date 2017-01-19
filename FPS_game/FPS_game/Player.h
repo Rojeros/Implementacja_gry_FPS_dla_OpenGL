@@ -9,6 +9,7 @@
 #include "Weapon.h"
 #include "WorldObjects.h"
 #include "Collision.h"
+#include "Map.h"
 
 static float LOOK_SPEED = 0.005;
 static float WALK_SPEED = 0.1;
@@ -42,7 +43,7 @@ public:
 	void show(float dt);
 	void jump();
 	void lookAt(float dx, float dy);
-	void Player::update(bool * keys, float groundHeight,WorldObjects * collisions);
+	void Player::update(bool * keys,bool * keyChange, float groundHeight,WorldObjects * collisions,Map*map);
 	void decreaseHealth(int num);
 	int getHealth();
 	int getEnergy();
