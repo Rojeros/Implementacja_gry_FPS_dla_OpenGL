@@ -201,12 +201,12 @@ void Map::initTerrain(char *fileName, float heightReducingFactor)
 	glDisable(GL_TEXTURE_2D);
 
 
-	box[0] = new CollisionPlane(vector3d(0,0,1),	vector3d(0,100,0), vector3d(terrain->width,100,0), vector3d(terrain->width,-100,0), vector3d(0,-100,0));
-	box[1] = new CollisionPlane(vector3d(1,0,0),	vector3d(terrain->width,100,0), vector3d(terrain->width,100, -terrain->height), vector3d(terrain->width,-100, -terrain->height), vector3d(terrain->width,-100,0));
-	box[2] = new CollisionPlane(vector3d(0,0,-1),	vector3d(0,100,-terrain->height), vector3d(terrain->width,100, -terrain->height), vector3d(terrain->width,-100, -terrain->height), vector3d(0,-100, -terrain->height));
-	box[3] = new CollisionPlane(vector3d(-1,0,0),	vector3d(0,100,0), vector3d(0,100, -terrain->height), vector3d(0,-100, terrain->height), vector3d(0,-100,0));
-	box[4] = new CollisionPlane(vector3d(0,1,0),	vector3d(0,100,0), vector3d(0,100, -terrain->height), vector3d(terrain->width,100, -terrain->height), vector3d(terrain->width,100,0));
-	box[5] = new CollisionPlane(vector3d(0,-1,0),	vector3d(0,-100,0), vector3d(terrain->width,-100,0), vector3d(terrain->width,-100, -terrain->height), vector3d(0,-100, -terrain->height));
+	box[0] = new CollisionPlane(vector3d(0,0,1),	vector3d(5,100,-5),					vector3d(terrain->width-5,100,-5),						vector3d(terrain->width-5,-100,-5),							vector3d(5,-100,-5));
+	box[1] = new CollisionPlane(vector3d(1,0,0),	vector3d(terrain->width-5,100,-5),	vector3d(terrain->width-5,100, -terrain->height+5),		vector3d(terrain->width-5,-100, -terrain->height+5),		vector3d(terrain->width-5,-100,-5));
+	box[2] = new CollisionPlane(vector3d(0,0,-1),	vector3d(5,100,-terrain->height+5),	vector3d(terrain->width-5,100, -terrain->height+5),		vector3d(terrain->width-5,-100, -terrain->height+5),		vector3d(5,-100, -terrain->height+5));
+	box[3] = new CollisionPlane(vector3d(-1,0,0),	vector3d(5,100,-5),					vector3d(5,100, -terrain->height+5),					vector3d(5,-100, -terrain->height+5),						vector3d(5,-100,-5));
+	box[4] = new CollisionPlane(vector3d(0,1,0),	vector3d(5,100,-5),					vector3d(5,100, -terrain->height+5),					vector3d(terrain->width-5,100, -terrain->height+5),			vector3d(terrain->width-5,100,-5));
+	box[5] = new CollisionPlane(vector3d(0,-1,0),	vector3d(5,-100,-5),					vector3d(terrain->width-5,-100,-5),						vector3d(terrain->width-5,-100, -terrain->height+5),	vector3d(5,-100, -terrain->height+5));
 
 }
 

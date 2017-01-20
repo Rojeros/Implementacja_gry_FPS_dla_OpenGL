@@ -35,6 +35,7 @@ private:
 	float dvx, dvy;
 	std::vector<Weapon*> *arsenal;
 	int currentWeaponNUmber;
+	float r;
 
 public:
 	Player(vector3d position, int points);
@@ -53,6 +54,7 @@ public:
 	void addPoints(int num);
 	Weapon *getCurrentWeapon();
 	void addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path);
+	void addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType);
 	void nextWeapon();
 	void previousWeapon();
 	bool haveAnyGun();
@@ -64,7 +66,7 @@ public:
 	float getX();
 	float getZ();
 	float getY();
-
+	float getRadius();
 
 
 };

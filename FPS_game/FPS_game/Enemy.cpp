@@ -59,6 +59,29 @@ Enemy::Enemy(int health, float speed, int strength, collisionsphere c, vector3d 
 	isCopy = true;
 }
 
+Enemy::Enemy(int health, float speed, int strength, collisionsphere c, vector3d rot, vector3d playerloc, GameAnimation * copy, float walkTime, float attackTime, float waitTime)
+{
+	this->health = health;
+	this->speed = speed;
+	this->strength = strength;
+	currentState = CurrentState::wait;
+	isdead = false;
+	cs = c;
+	rotation = vector3d(0, 0, 1);
+	angle = 0;
+	direction.change(playerloc - cs.center);
+	direction.normalize();
+	timer = 0;
+	deadTimer = 0;
+	force.change(0.0, -0.45, 0.0);
+	walk = copy->getAnimation(animationName::EnemyMove);
+	attack = copy->getAnimation(animationName::EnemyAtack);
+	wait = copy->getAnimation(animationName::EnemyStand);
+	bulletAnimation = copy->getAnimation(animationName::EnemyBullet);
+	currentAnimation = wait;
+	isCopy = true;
+}
+
 Enemy::~Enemy()
 {
 	if(!isCopy){
@@ -69,7 +92,7 @@ Enemy::~Enemy()
 	}
 }
 
-bool Enemy::update(float groundHeight, WorldObjects * collisions, vector3d playerpos, BulletFactory * bullets)
+bool Enemy::update(float groundHeight, WorldObjects * collisions, vector3d playerpos,float playerRadius, BulletFactory * bullets)
 {
 	if (health <= 0 || isdead) {
 		isdead = true;
@@ -155,7 +178,7 @@ bool Enemy::update(float groundHeight, WorldObjects * collisions, vector3d playe
 				}
 			}
 
-			boolean isCollision = Collision::spheresphere(cs.center, cs.r, playerpos, 1.5);
+			boolean isCollision = Collision::spheresphere(cs.center, cs.r, playerpos, playerRadius);
 
 			if (!isCollision) {
 				setLocation(newpos);
@@ -177,7 +200,7 @@ bool Enemy::update(float groundHeight, WorldObjects * collisions, vector3d playe
 				direction.change(0, 0, 0);
 				direction.change(playerpos - cs.center);
 				direction.normalize();
-				bullets->addBullet(collisionsphere(cs.center + direction*cs.r*1.5, 0.5), direction, 0.5, 10, strength,bulletAnimation);
+				bullets->addBullet(collisionsphere(cs.center + direction*cs.r*1.5, 0.5), direction, 0.5, 10, strength,bulletAnimation,false);
 
 			}
 			break;

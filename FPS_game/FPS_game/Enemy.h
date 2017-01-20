@@ -14,6 +14,8 @@
 #include "ObjectContainer.h"
 #include "WorldObjects.h"
 #include "BulletFactory.h"
+#include "GameAnimation.h"
+
 class BulletFactory;
 enum CurrentState
 {
@@ -69,9 +71,10 @@ public:
 	Enemy(int health, float speed, int strength, collisionsphere c, vector3d rot, vector3d playerloc,std::string path, float walkTime, float attackTime, float waitTime);
 
 	Enemy(int health, float speed, int strength, collisionsphere c, vector3d rot, vector3d playerloc, Enemy * copy, float walkTime, float attackTime, float waitTime);
+	Enemy(int health, float speed, int strength, collisionsphere c, vector3d rot, vector3d playerloc, GameAnimation * copy, float walkTime, float attackTime, float waitTime);
 
 	~Enemy();
-	bool update(float groundHeight, WorldObjects * collisions, vector3d playerpos,BulletFactory * bullets);
+	bool update(float groundHeight, WorldObjects * collisions, vector3d playerpos, float playerRadius,BulletFactory * bullets);
 	void show(float dt);
 	collisionsphere* getSphere();
 

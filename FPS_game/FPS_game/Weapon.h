@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 #include <SDL.h>
 #include "ObjectContainer.h"
+#include "GameAnimation.h"
 
 class Weapon {
 
@@ -18,7 +19,7 @@ class Weapon {
 	bool isRealoading;
 	bool isAim;
 	bool isAutomatic;
-
+	bool isCopy;
 
 	vector3d currentPosition;
 	vector3d currentRotation;
@@ -36,6 +37,8 @@ class Weapon {
 public:
 	Weapon();
 	Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision,std::string path);
+	Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType);
+
 	~Weapon();
 	void setName(std::string name_p);
 	

@@ -23,6 +23,7 @@
 #include "Enemy.h"
 #include <list>
 #include "BulletFactory.h"
+#include "GameAnimation.h"
 
 class GameContener
 {
@@ -41,8 +42,8 @@ private:
 
 	Player * player;
 	Map * map;
-	bool keys[282];
-	bool keysChange[282];
+	bool keys[285];
+	bool keysChange[285];
 	int screen_width  ;
 	int screen_height ;
 	int full_screen;
@@ -54,6 +55,7 @@ private:
 	std::vector<material> materials;
 	std::vector<materialVertex> materialsVertex;
 	GameUI *text;
+	GameAnimation * animations;
 	bool SetOpenGLAttributes();
 	void PrintSDL_GL_Attributes();
 	void CheckSDLError(int line);

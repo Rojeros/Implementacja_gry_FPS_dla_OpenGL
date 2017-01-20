@@ -2,13 +2,13 @@
 
 
 
-BulletFactory::BulletFactory():angle(0)
+BulletFactory::BulletFactory()
 {
 }
 
-void BulletFactory::addBullet(collisionsphere collision, vector3d directionVector, float speed, float maxLifeTime, float strength,ObjectContainer * mesh)
+void BulletFactory::addBullet(collisionsphere collision, vector3d directionVector, float speed, float maxLifeTime, float strength,ObjectContainer * mesh,bool isFromPlayer)
 {
-	bullets.push_back(Bullet( collision,  directionVector,  speed,  maxLifeTime, strength,mesh));
+	bullets.push_back(Bullet( collision,  directionVector,  speed,  maxLifeTime, strength,mesh,isFromPlayer));
 }
 
 void BulletFactory::update(float dt, Player * player, std::list<Enemy*>* enemy,Map * map)
@@ -16,7 +16,7 @@ void BulletFactory::update(float dt, Player * player, std::list<Enemy*>* enemy,M
 	for (std::list<Bullet>::iterator it = bullets.begin(); it != bullets.end(); it++){
 		it->lifeTime += dt;
 		it->collision.center = it->collision.center + it->directionVector*it->speed;
-		if (Collision::pointdistace(player->getCamera()->getLocation(), it->collision.center) < 1.5 + it->collision.r) {
+		if (Collision::pointdistace(player->getCamera()->getLocation(), it->collision.center) < player->getRadius() + it->collision.r) {
 			player->addHealth(-it->strength);
 			it->toDelete = true;
 		}
@@ -30,7 +30,6 @@ void BulletFactory::update(float dt, Player * player, std::list<Enemy*>* enemy,M
 				it->toDelete = true;
 			}
 		}
-		//TODO: collision
 	}
 std::list<Bullet>::iterator it = bullets.begin();
 while(it != bullets.end()){
@@ -49,8 +48,15 @@ void BulletFactory::draw()
 	while (it != bullets.end()) {
 		glPushMatrix();
 		glTranslatef(it->collision.center.x, it->collision.center.y, it->collision.center.z);
-		angle += 10;
-		glRotated(angle, 1, 1, 1);
+		if (!it->isFromPlayer) {
+			it->angle += 10;
+	
+		}
+		
+			glRotated(it->angle, it->rotate.x, it->rotate.y, it->rotate.z);
+		
+
+	
 		it->mesh->draw(0.1);
 		glPopMatrix();
 			it++;

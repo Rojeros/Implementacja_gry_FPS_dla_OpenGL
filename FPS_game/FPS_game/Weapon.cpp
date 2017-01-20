@@ -18,6 +18,7 @@ Weapon::Weapon()
 	lastShot = 0;
 	isAim = false;
 	isRealoading = false;
+	isCopy = false;
 }
 Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path) {
 
@@ -32,9 +33,9 @@ Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned 
 	this->maxMagazineBullets = maxMagazineBullets;
 	this->name = name;
 
-	normalStateAnimation = new ObjectContainer("data/2/gun/Handgun_Game_Cycles_000004.obj", speed, true);
-	fireStateAnimation = new ObjectContainer("data/2/gun/Handgun_Game_Cycles_000001.obj", speed, false);
-	reloadStateAnimation = new ObjectContainer("data/2/gun/Handgun_Game_Cycles_000001.obj", speed, false);
+	normalStateAnimation = new ObjectContainer(path+".fire_000001.obj", speed, false);
+	fireStateAnimation = new ObjectContainer(path+".fire_", speed, false);
+	reloadStateAnimation = new ObjectContainer(path+".reload_", speed, false);
 	bulletAnimation = new ObjectContainer("data/2/gun/bullet.obj", speed, false);
 	lastShot = 0;
 	isAim = false;
@@ -46,7 +47,37 @@ Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned 
 	setRotation(vector3d(0, 0, 0));
 	setCurrentPosition(vector3d(-0.06, 0.13, 0.13));
 	setCurrentRotation(vector3d(0, 0, 0));
+	isCopy = false;
+}
 
+Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy,animationName weaponType)
+{
+	this->precision = precision;
+	this->aimprecision = aimprecision;
+
+	this->speed = speed;
+	this->power = power;
+	this->allBullets = allBullets;
+	this->ammoClip = ammoClip;
+	this->isAutomatic = isAutomatic;
+	this->maxMagazineBullets = maxMagazineBullets;
+	this->name = name;
+
+	normalStateAnimation =copy->getAnimation(weaponType);
+	fireStateAnimation = copy->getAnimation(static_cast <animationName>(weaponType+1));
+	reloadStateAnimation = copy->getAnimation(static_cast <animationName>(weaponType + 2));
+	bulletAnimation = copy->getAnimation(static_cast <animationName>(weaponType + 3));
+	lastShot = 0;
+	isAim = false;
+	isRealoading = false;
+
+	isFired = false;
+	currentState = 1;
+	setPosition(vector3d(-0.06, 0.13, 0.13));
+	setRotation(vector3d(0, 0, 0));
+	setCurrentPosition(vector3d(-0.06, 0.13, 0.13));
+	setCurrentRotation(vector3d(0, 0, 0));
+	isCopy = false;
 }
 
 Weapon::~Weapon()
@@ -218,7 +249,7 @@ void Weapon::reload() {
 	}
 }
 void Weapon::show(float angleYaw, float anglePitch, float dt) {
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
 	glPushMatrix();
 
 	glTranslatef(currentPosition.x, currentPosition.y, currentPosition.z);
@@ -226,8 +257,8 @@ void Weapon::show(float angleYaw, float anglePitch, float dt) {
 	glRotatef(-angleYaw * 57.2957795, 0, 1, 0);
 	glRotatef(anglePitch * 57.2957795, 0, 0, 1);
 
-	glTranslatef(1.4, -0.45, 0.5);
-	glScalef(0.6, 0.6, 0.6);
+	glTranslatef(1.8, -0.25, 0.6);
+	//glScalef(0.6, 0.6, 0.6);
 	switch (currentState) {
 	case(1) :
 		normalStateAnimation->draw(dt);
@@ -242,5 +273,5 @@ void Weapon::show(float angleYaw, float anglePitch, float dt) {
 
 
 	glPopMatrix();
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 }

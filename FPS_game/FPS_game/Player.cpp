@@ -12,7 +12,7 @@ Player::Player(vector3d position,int points):health(100),energy(100), isSprint(f
 	startPoint = position;
 	arsenal = new std::vector<Weapon*>();
 	currentWeaponNUmber = 0;
-
+	r = 0.5;
 
 }
 
@@ -138,9 +138,9 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 
 
 
-		if (getY() > groundHeight + 0.5){
+		if (getY() > groundHeight + 2){
 			if ((getY() - groundHeight) < 1){
-				direction += vector3d(0, (groundHeight- getY())+0.5, 0);
+				direction += vector3d(0, (groundHeight- getY())+2.0f, 0);
 				groundCollision = true;
 			}
 			if ((getY() - groundHeight) > 1)
@@ -148,8 +148,8 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 			
 		}
 
-	if (getY() < groundHeight+0.5 ){
-		direction += vector3d(0, groundHeight-getY()+0.5, 0);
+	if (getY() < groundHeight +2.0f){
+		direction += vector3d(0, groundHeight-getY()+0.6f, 0);
 		groundCollision = true;
 	}
 	if (energy<100 && !isSprint)
@@ -170,7 +170,7 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 					collisions->getCollisonPLane(i, j)->get1point(),
 					collisions->getCollisonPLane(i, j)->get2point(),
 					collisions->getCollisonPLane(i, j)->get3point(),
-					collisions->getCollisonPLane(i, j)->get4point(), 1.5);
+					collisions->getCollisonPLane(i, j)->get4point(), r);
 		
 
 				
@@ -184,7 +184,7 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 			map->getBox()[i]->get1point(),
 			map->getBox()[i]->get2point(),
 			map->getBox()[i]->get3point(),
-			map->getBox()[i]->get4point(), 1.5);
+			map->getBox()[i]->get4point(), r);
 	}
 	cam->setLocation(newpos);
 	direction.change(0, 0, 0);
@@ -247,6 +247,12 @@ Weapon * Player::getCurrentWeapon()
 void Player::addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path)
 {
 	arsenal->push_back(new Weapon(name,speed,isAutomatic,power,allBullets,ammoClip,maxMagazineBullets,precision,aimprecision,path));
+	currentWeaponNUmber = arsenal->size() - 1;
+}
+
+void Player::addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType)
+{
+	arsenal->push_back(new Weapon(name, speed, isAutomatic, power, allBullets, ammoClip, maxMagazineBullets, precision, aimprecision, copy,weaponType));
 	currentWeaponNUmber = arsenal->size() - 1;
 }
 
@@ -319,6 +325,11 @@ float Player::getZ()
 float Player::getY()
 {
 	return cam->getLocation().getY();
+}
+
+float Player::getRadius()
+{
+	return r;
 }
 
 

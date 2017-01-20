@@ -3,6 +3,7 @@
 #include "ObjectContainer.h"
 #include "Vector.h"
 #include "CollisionPlane.h"
+
 struct ObjectInfo {
 	vector3d position;
 	vector3d scaling;
@@ -29,7 +30,8 @@ class WorldObjects
 {
 public:
 	WorldObjects();
-	void addModel(std::string path,int size,int mapX,int imapZ);
+	void addModel(std::string path,int size,int mapX,int mapZ);
+	void addModel(ObjectContainer * pointer, int size, int mapX, int mapZ);
 	vector3d getPosition(int number);
 	void setHeight(int number, float height);
 	void draw(float dt);

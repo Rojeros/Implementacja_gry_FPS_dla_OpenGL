@@ -10,8 +10,17 @@ void WorldObjects::addModel(std::string path, int size, int mapX, int mapZ)
 {
 	objects.push_back(new ObjectContainer(path,5,false));
 	for (int i = 0; i < size; i++) {
-		float scale = (rand() % 200) / (float)100 + 0.5;
+		float scale = (float)(rand() % 100) / (float)100 + 1.0f;
 		worldContainer.push_back(ObjectInfo(vector3d(rand()%mapX,0,-rand()%mapZ),vector3d(scale, scale, scale),objects.back()));
+
+	}
+}
+
+void WorldObjects::addModel(ObjectContainer * pointer, int size, int mapX, int mapZ)
+{
+	for (int i = 0; i < size; i++) {
+		float scale = (float)(rand() % 100) / (float)100 + 1.0f;
+		worldContainer.push_back(ObjectInfo(vector3d(rand() % mapX, 0, -rand() % mapZ), vector3d(scale, scale, scale), pointer));
 
 	}
 }
@@ -37,7 +46,7 @@ void WorldObjects::draw(float dt)
 	for (int i = 0; i < worldContainer.size(); i++) {
 		glPushMatrix();
 		glTranslatef(worldContainer[i].position.x, worldContainer[i].position.y , worldContainer[i].position.z);
-
+		glScalef(worldContainer[i].scaling.x, worldContainer[i].scaling.y, worldContainer[i].scaling.z);
 		worldContainer[i].data->draw(dt);
 		
 		glPopMatrix();

@@ -194,6 +194,7 @@ copy "$(SolutionDir)lib\$(PlatformTargetAsMSBuildArchitecture)\zlib1.dll" "$(Out
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="CollisionPlane.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="GameAnimation.cpp" />
     <ClCompile Include="GameContener.cpp" />
     <ClCompile Include="LevelLoad.cpp" />
     <ClCompile Include="main.cpp" />
@@ -212,6 +213,7 @@ copy "$(SolutionDir)lib\$(PlatformTargetAsMSBuildArchitecture)\zlib1.dll" "$(Out
     <ClInclude Include="Collision.h" />
     <ClInclude Include="CollisionPlane.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="GameAnimation.h" />
     <ClInclude Include="GameContener.h" />
     <ClInclude Include="LevelLoad.h" />
     <ClInclude Include="Map.h" />
