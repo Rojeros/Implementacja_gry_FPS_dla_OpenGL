@@ -171,6 +171,49 @@ void GameUI::draw()
 
 }
 
+void GameUI::displayRedSquare()
+{
+	glPushMatrix();
+
+	glMatrixMode(GL_MODELVIEW);
+
+	glLoadIdentity();
+
+	gluOrtho2D(0, width, 0, height); // m_Width and m_Height is the resolution of window
+	glMatrixMode(GL_PROJECTION);
+
+	glLoadIdentity();
+
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+
+	glDisable(GL_TEXTURE_2D);
+
+	glColor4f(1, 1, 1, 1);
+	glColor4f(0.5f, 0.0f, 0.0f, 0.5f);
+	glBegin(GL_QUADS);
+	glVertex2f(0, 0);
+	glVertex2f(width, 0);
+	glVertex2f(width, height);
+	glVertex2f(0, height);
+	glEnd();
+
+	glEnable(GL_TEXTURE_2D);
+
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+
+	glMatrixMode(GL_PROJECTION);
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glEnable(GL_TEXTURE_2D);
+
+
+
+
+}
+
 void GameUI::draw(int index, coordinates coord, int line, int column, float widthT, float heightT)
 {
 	glMatrixMode(GL_MODELVIEW);
@@ -303,9 +346,6 @@ void GameUI::drawBoxes()
 	glColor3f(redEnergy, 0, blue);
 	glVertex2f(xr, y + fontSize);
 	glEnd();
-
-
-
 
 	glEnable(GL_TEXTURE_2D);
 

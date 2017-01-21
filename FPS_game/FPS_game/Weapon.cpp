@@ -4,40 +4,37 @@ Weapon::Weapon()
 	this->precision = 0;
 	this->aimprecision = 0;
 
-	this->speed = 0;
 	this->power = 0;
 	this->allBullets = 0;
 	this->ammoClip = 0;
-	this->isAutomatic = 0;
 	this->maxMagazineBullets = 0;
 	this->name = "";
 
 	normalStateAnimation = NULL;
 	fireStateAnimation = NULL;
 	reloadStateAnimation = NULL;
-	lastShot = 0;
+	bulletAnimation = NULL;
 	isAim = false;
 	isRealoading = false;
 	isCopy = false;
 }
-Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path) {
+Weapon::Weapon(std::string name, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path) {
 
 	this->precision = precision;
 	this->aimprecision = aimprecision;
 
-	this->speed = speed;
 	this->power = power;
 	this->allBullets = allBullets;
 	this->ammoClip = ammoClip;
-	this->isAutomatic = isAutomatic;
+
 	this->maxMagazineBullets = maxMagazineBullets;
 	this->name = name;
+	startAmmo = allBullets;
 
 	normalStateAnimation = new ObjectContainer(path+".fire_000001.obj", speed, false);
 	fireStateAnimation = new ObjectContainer(path+".fire_", speed, false);
 	reloadStateAnimation = new ObjectContainer(path+".reload_", speed, false);
 	bulletAnimation = new ObjectContainer("data/2/gun/bullet.obj", speed, false);
-	lastShot = 0;
 	isAim = false;
 	isRealoading = false;
 
@@ -50,24 +47,24 @@ Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned 
 	isCopy = false;
 }
 
-Weapon::Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy,animationName weaponType)
+Weapon::Weapon(std::string name, float speedOfFireAnimation, float speedOfReloadAnimation, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy,animationName weaponType)
 {
 	this->precision = precision;
 	this->aimprecision = aimprecision;
 
-	this->speed = speed;
 	this->power = power;
 	this->allBullets = allBullets;
 	this->ammoClip = ammoClip;
-	this->isAutomatic = isAutomatic;
 	this->maxMagazineBullets = maxMagazineBullets;
 	this->name = name;
+	startAmmo = allBullets;
 
 	normalStateAnimation =copy->getAnimation(weaponType);
 	fireStateAnimation = copy->getAnimation(static_cast <animationName>(weaponType+1));
+	fireStateAnimation->changeDurationOfAnimation(speedOfFireAnimation);
 	reloadStateAnimation = copy->getAnimation(static_cast <animationName>(weaponType + 2));
+	reloadStateAnimation->changeDurationOfAnimation(speedOfReloadAnimation);
 	bulletAnimation = copy->getAnimation(static_cast <animationName>(weaponType + 3));
-	lastShot = 0;
 	isAim = false;
 	isRealoading = false;
 
@@ -117,10 +114,6 @@ void Weapon::setCurrentState(unsigned int currentState_p) {
 	currentState = currentState_p;
 }
 
-void Weapon::setLastShot(unsigned int lastShot_p) {
-	lastShot = lastShot_p;
-}
-
 void Weapon::addAllBullets(unsigned int ammoClip_p)
 {
 	allBullets += ammoClip_p;
@@ -163,14 +156,9 @@ unsigned int Weapon::getCurrentState() {
 	return currentState;
 }
 
-unsigned int Weapon::getLastShot() {
-	return lastShot;
-}
-
 
 void Weapon::update(vector3d newPosition) {
 
-	lastShot++;
 	currentPosition = newPosition;
 	if (currentState != 1) {
 		if (currentState == 2) {
@@ -194,10 +182,9 @@ void Weapon::update(vector3d newPosition) {
 bool Weapon::fire(vector3d& direction, vector3d& camdirection) {
 	if (isRealoading)
 		return 0;
-	if ((!isAutomatic && !isFired) || isAutomatic)
-	{
 
-		if (lastShot >= speed)
+
+		if (currentState==1)
 		{
 			if (ammoClip > 0)
 			{
@@ -213,7 +200,6 @@ bool Weapon::fire(vector3d& direction, vector3d& camdirection) {
 					direction.z = camdirection.z + ((float)(rand() % 2 - 1) / precision);
 				}
 				isFired = true;
-				lastShot = 0;
 				ammoClip--;
 
 				currentState = 2;
@@ -221,8 +207,7 @@ bool Weapon::fire(vector3d& direction, vector3d& camdirection) {
 
 				return 1;
 			}
-
-		}
+		
 	}
 	return 0;
 }
@@ -233,6 +218,7 @@ void Weapon::nofire()
 void Weapon::reload() {
 	if ((!isRealoading) && (allBullets > 0) && (ammoClip != maxMagazineBullets))
 	{
+		if(getCurrentState()==1){
 		isRealoading = true;
 		if (maxMagazineBullets < allBullets) {
 			allBullets -= (maxMagazineBullets- ammoClip);
@@ -246,9 +232,16 @@ void Weapon::reload() {
 
 
 		currentState = 3;
+		}
 	}
 }
+void Weapon::resetAmmo()
+{
+	allBullets = startAmmo;
+	ammoClip = maxMagazineBullets;
+}
 void Weapon::show(float angleYaw, float anglePitch, float dt) {
+
 	//glDisable(GL_DEPTH_TEST);
 	glPushMatrix();
 
@@ -257,7 +250,7 @@ void Weapon::show(float angleYaw, float anglePitch, float dt) {
 	glRotatef(-angleYaw * 57.2957795, 0, 1, 0);
 	glRotatef(anglePitch * 57.2957795, 0, 0, 1);
 
-	glTranslatef(1.8, -0.25, 0.6);
+	glTranslatef(1.6, -0.20, 0.6);
 	//glScalef(0.6, 0.6, 0.6);
 	switch (currentState) {
 	case(1) :

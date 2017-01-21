@@ -18,7 +18,6 @@ class Weapon {
 	bool isFired;
 	bool isRealoading;
 	bool isAim;
-	bool isAutomatic;
 	bool isCopy;
 
 	vector3d currentPosition;
@@ -32,12 +31,13 @@ class Weapon {
 	float aimprecision;
 	unsigned int power;
 	unsigned int currentState;
-	unsigned int lastShot;
+	float lastShot;
+	int startAmmo;
 
 public:
 	Weapon();
-	Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision,std::string path);
-	Weapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType);
+	Weapon(std::string name, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision,std::string path);
+	Weapon(std::string name,  float speedOfFireAnimation, float speedOfReloadAnimation, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType);
 
 	~Weapon();
 	void setName(std::string name_p);
@@ -50,7 +50,6 @@ public:
 	void setAllBullets(unsigned int ammoClip_p);
 	void setAmmoClip(unsigned int ammoClip_p);
 	void setCurrentState(unsigned int currentState_p);
-	void setLastShot(unsigned int lastShot_p);
 	void addAllBullets(unsigned int ammoClip_p);
 	std::string getName();
 	unsigned int getPower();
@@ -63,11 +62,11 @@ public:
 	unsigned int getAmmoClip();
 	unsigned int getAllBullets();
 	unsigned int getCurrentState();
-	unsigned int getLastShot();
 	void update(vector3d newPosition);
 	bool fire(vector3d& direction, vector3d& camdirection);
 	void nofire();
 	void reload();
+	void resetAmmo();
 	void show(float angleYaw, float anglePitch, float dt);
 
 };

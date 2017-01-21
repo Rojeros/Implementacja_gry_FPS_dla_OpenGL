@@ -10,7 +10,10 @@ ObjectContainer::ObjectContainer(std::string path, float time, bool isLooped):cu
 	animation=a.animation(path, mainMaterial, mainMaterialsVertex,collision,frames);
 
 	timePerFrame = time / (float)frames;
-
+	if (timePerFrame <= 0) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "timePerFrame is NULL", NULL);
+		exit(3);
+	}
 }
 
 bool ObjectContainer::animationEnded()
@@ -63,5 +66,15 @@ void ObjectContainer::draw(float dt)
 	else {
 		animation->at(0)->draw(mainMaterial, mainMaterialsVertex);
 		displayed = true;
+	}
+}
+
+void ObjectContainer::changeDurationOfAnimation(float time)
+{
+	this->time = time;
+	timePerFrame = this->time / (float)frames;
+	if (timePerFrame <= 0) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "timePerFrame is NULL", NULL);
+		exit(4);
 	}
 }

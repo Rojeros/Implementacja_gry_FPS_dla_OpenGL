@@ -10,9 +10,18 @@
 #include "WorldObjects.h"
 #include "Collision.h"
 #include "Map.h"
+#include "BulletFactory.h"
+
+class BulletFactory;
 
 static float LOOK_SPEED = 0.005;
 static float WALK_SPEED = 0.1;
+
+
+#define MOUSE_LEFT_BUTTION 282
+#define MOUSE_MIDDLE_BUTTION 283
+#define MOUSE_RIGHT_BUTTION 284
+
 
 class Player
 
@@ -23,6 +32,8 @@ private:
 	vector3d force;
 	vector3d direction;
 	bool groundCollision;
+	bool beHit;
+	float hitTimeDisplay;
 	bool isSprint;
 	float energy;
 	int points;
@@ -44,7 +55,7 @@ public:
 	void show(float dt);
 	void jump();
 	void lookAt(float dx, float dy);
-	void Player::update(bool * keys,bool * keyChange, float groundHeight,WorldObjects * collisions,Map*map);
+	void Player::update(bool * keys,bool * keyChange, float groundHeight,WorldObjects * collisions,Map*map,BulletFactory * bullets);
 	void decreaseHealth(int num);
 	int getHealth();
 	int getEnergy();
@@ -53,11 +64,12 @@ public:
 	void setStartPosition(vector3d pos);
 	void addPoints(int num);
 	Weapon *getCurrentWeapon();
-	void addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path);
-	void addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType);
+	void addWeapon(std::string name, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path);
+	void addWeapon(std::string name, float fireAnimationSpeed, float reloadAnimationSpeed, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType);
 	void nextWeapon();
 	void previousWeapon();
 	bool haveAnyGun();
+	void resetArsenal();
 	bool isDead();
 	int getPoints();
 	void teleport();
@@ -67,6 +79,8 @@ public:
 	float getZ();
 	float getY();
 	float getRadius();
+	bool wasHit(float dt);
+	void setHit(bool state);
 
 
 };

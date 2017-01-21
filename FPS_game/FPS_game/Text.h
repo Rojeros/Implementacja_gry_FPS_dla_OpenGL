@@ -66,6 +66,7 @@ public:
 	};
 	void changeValues(int health,int energy,int ammo,int allammo,int score,std::string weaponName,std::string level,int fps);
 	void draw();
+	void displayRedSquare();
 	protected:
 		int healthTexture;
 		int energyTexture;

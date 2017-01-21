@@ -2,9 +2,9 @@
 #include <SDL.h>
 
 
-Player::Player(vector3d position,int points):health(100),energy(100), isSprint(false),points(points),dx(0),dy(0), isJump(false), jumpHeight(0)
+Player::Player(vector3d position, int points) :health(100), energy(100), isSprint(false), points(points), dx(0), dy(0), isJump(false), jumpHeight(0)
 {
-	
+
 	force.change(0.0, -0.45, 0.0);
 	//direction.change(0.0, 0.0, 0.0);
 	cam = new Camera();
@@ -13,7 +13,8 @@ Player::Player(vector3d position,int points):health(100),energy(100), isSprint(f
 	arsenal = new std::vector<Weapon*>();
 	currentWeaponNUmber = 0;
 	r = 0.5;
-
+	beHit = false;
+	hitTimeDisplay = 0;
 }
 
 Player::~Player()
@@ -33,7 +34,7 @@ Camera* Player::getCamera()
 void Player::show(float dt)
 {
 	cam->refresh();
-	
+
 }
 
 void Player::jump()
@@ -67,24 +68,24 @@ void Player::teleport()
 
 
 
-void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObjects * collisions, Map*map)
+void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObjects * collisions, Map*map, BulletFactory * bullets)
 {
 	float modifier = 1;
-	if (keys[SDL_SCANCODE_LSHIFT] == 1 || SDL_SCANCODE_RSHIFT == 1) {
+	if (keys[SDL_SCANCODE_LSHIFT] == 1 || keys[SDL_SCANCODE_RSHIFT] == 1) {
 		if (energy > 20) {
 			isSprint = true;
 			modifier = 3;
-			
+
 		}
 	}
 
 	if (keys[SDL_SCANCODE_LCTRL] == 1) {
-		addHealth(-1);
+		//		addHealth(-1);
 
-		
+
 	}
 
-	if (keys[SDL_SCANCODE_LEFT] == 1|| keys[SDL_SCANCODE_A]) {
+	if (keys[SDL_SCANCODE_LEFT] == 1 || keys[SDL_SCANCODE_A]) {
 		cam->strafe(-1 * WALK_SPEED * modifier);
 		if (isSprint)
 			energy -= 0.5;
@@ -104,76 +105,85 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 		if (isSprint)
 			energy -= 0.5;
 	}
-	if (keys[SDL_SCANCODE_F] == 1 ) {
-	//	teleport();
-		}
-	if (keys[SDL_SCANCODE_R] == 1 && keysChange[SDL_SCANCODE_R]==0) {
-		if (!arsenal->empty()){
-		arsenal->at(currentWeaponNUmber)->reload();
-		keysChange[SDL_SCANCODE_R] = 1;
+	if (keys[SDL_SCANCODE_F] == 1) {
+		//	teleport();
+	}
+	if (keys[SDL_SCANCODE_R] == 1 && keysChange[SDL_SCANCODE_R] == 0) {
+		if (!arsenal->empty()) {
+			arsenal->at(currentWeaponNUmber)->reload();
+			keysChange[SDL_SCANCODE_R] = 1;
 		}
 	}
 	if (keys[SDL_SCANCODE_SPACE] == 1) {
 		jump();
 	}
 	if (keys[SDL_SCANCODE_Q] == 1 && keysChange[SDL_SCANCODE_Q] == 0) {
-		if (!arsenal->empty()){
+		if (!arsenal->empty()) {
 			previousWeapon();
 			keysChange[SDL_SCANCODE_Q] = 1;
 		}
 	}
 	if (keys[SDL_SCANCODE_E] == 1 && keysChange[SDL_SCANCODE_E] == 0) {
-		if (!arsenal->empty()){
+		if (!arsenal->empty()) {
 			nextWeapon();
 			keysChange[SDL_SCANCODE_E] = 1;
 		}
 	}
-
-
-
-		cam->rotateYaw(0.005*dx);
-		dx = 0;
-		cam->rotatePitch(0.005*(-dy));
-		dy = 0;
-
-
-
-		if (getY() > groundHeight + 2){
-			if ((getY() - groundHeight) < 1){
-				direction += vector3d(0, (groundHeight- getY())+2.0f, 0);
-				groundCollision = true;
+	if (keys[MOUSE_LEFT_BUTTION] == 1) {
+		if (haveAnyGun()) {
+			bool isshot = false;
+			vector3d shotDirection;
+			isshot = getCurrentWeapon()->fire(shotDirection, getCamera()->getDirectionVector());
+			shotDirection.normalize();
+			if (isshot) {
+				bullets->addBullet(collisionsphere(getCamera()->getLocation() + shotDirection*1.5, 0.5), shotDirection, 3, 10, getCurrentWeapon()->getPower(), getCurrentWeapon()->getBulletAnimation(), true);
 			}
-			if ((getY() - groundHeight) > 1)
-			direction += force;
-			
 		}
+	}
 
-	if (getY() < groundHeight +2.0f){
-		direction += vector3d(0, groundHeight-getY()+0.6f, 0);
+	cam->rotateYaw(0.005*dx);
+	dx = 0;
+	cam->rotatePitch(0.005*(-dy));
+	dy = 0;
+
+
+
+	if (getY() > groundHeight + 2) {
+		if ((getY() - groundHeight) < 1) {
+			direction += vector3d(0, (groundHeight - getY()) + 2.0f, 0);
+			groundCollision = true;
+		}
+		if ((getY() - groundHeight) > 1)
+			direction += force;
+
+	}
+
+	if (getY() < groundHeight + 2.0f) {
+		direction += vector3d(0, groundHeight - getY() + 0.6f, 0);
 		groundCollision = true;
 	}
-	if (energy<100 && !isSprint)
+	if (energy < 100 && !isSprint)
 		energy += 0.1;
-	
 
-		isSprint=false;
+
+	isSprint = false;
 
 	vector3d newpos(cam->getLocation());
 
 	newpos += direction;
-	
+
 	if (collisions != NULL) {
 		for (int i = 0; i < collisions->getSize(); i++) {
 			for (int j = 0; j < 6; j++) {
-			Collision::sphereplane(newpos,
+				Collision::sphereplane(newpos,
 					collisions->getCollisonPLane(i, j)->getnormal(),
 					collisions->getCollisonPLane(i, j)->get1point(),
 					collisions->getCollisonPLane(i, j)->get2point(),
 					collisions->getCollisonPLane(i, j)->get3point(),
 					collisions->getCollisonPLane(i, j)->get4point(), r);
-		
 
-				
+
+
 			}
 			//	std::cout << collisions->getCollisonPLane(i, j)->get1point() << " " << collisions->getCollisonPLane(i, j)->get2point() << " " << collisions->getCollisonPLane(i, j)->get3point() << " " << collisions->getCollisonPLane(i, j)->get4point() << "\n";
 		}
@@ -190,7 +200,7 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 	direction.change(0, 0, 0);
 
 	if (!arsenal->empty())
-	arsenal->at(currentWeaponNUmber)->update(newpos);
+		arsenal->at(currentWeaponNUmber)->update(newpos);
 
 }
 
@@ -241,27 +251,29 @@ void Player::addPoints(int num)
 Weapon * Player::getCurrentWeapon()
 {
 	if (arsenal != NULL)
-	return arsenal->at(currentWeaponNUmber);
+		return arsenal->at(currentWeaponNUmber);
 }
 
-void Player::addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path)
+void Player::addWeapon(std::string name, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path)
 {
-	arsenal->push_back(new Weapon(name,speed,isAutomatic,power,allBullets,ammoClip,maxMagazineBullets,precision,aimprecision,path));
+	arsenal->push_back(new Weapon(name, power, allBullets, ammoClip, maxMagazineBullets, precision, aimprecision, path));
 	currentWeaponNUmber = arsenal->size() - 1;
 }
 
-void Player::addWeapon(std::string name, unsigned int speed, bool isAutomatic, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType)
+void Player::addWeapon(std::string name, float fireAnimationSpeed, float reloadAnimationSpeed,  unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType)
 {
-	arsenal->push_back(new Weapon(name, speed, isAutomatic, power, allBullets, ammoClip, maxMagazineBullets, precision, aimprecision, copy,weaponType));
+	arsenal->push_back(new Weapon(name, fireAnimationSpeed, reloadAnimationSpeed, power, allBullets, ammoClip, maxMagazineBullets, precision, aimprecision, copy, weaponType));
 	currentWeaponNUmber = arsenal->size() - 1;
 }
 
 void Player::nextWeapon()
 {
 	if (!arsenal->empty()) {
-		currentWeaponNUmber++;
-		if (currentWeaponNUmber>arsenal->size()-1) {
-			currentWeaponNUmber = 0;
+		if (getCurrentWeapon()->getCurrentState()==1) {
+			currentWeaponNUmber++;
+			if (currentWeaponNUmber > arsenal->size() - 1) {
+				currentWeaponNUmber = 0;
+			}
 		}
 	}
 }
@@ -269,9 +281,11 @@ void Player::nextWeapon()
 void Player::previousWeapon()
 {
 	if (arsenal != NULL) {
-		currentWeaponNUmber--;
-		if (currentWeaponNUmber<0 ) {
-			currentWeaponNUmber = arsenal->size() - 1;
+		if (getCurrentWeapon()->getCurrentState() == 1) {
+			currentWeaponNUmber--;
+			if (currentWeaponNUmber < 0) {
+				currentWeaponNUmber = arsenal->size() - 1;
+			}
 		}
 	}
 }
@@ -279,10 +293,19 @@ void Player::previousWeapon()
 bool Player::haveAnyGun()
 {
 	if (!arsenal->empty()) {
-	return true;
+		return true;
 	}
 	else {
 		return false;
+	}
+}
+
+void Player::resetArsenal()
+{
+	if (!arsenal->empty()) {
+		for (int i = 0; i < arsenal->size(); i++) {
+			arsenal->at(i)->resetAmmo();
+		}
 	}
 }
 
@@ -299,7 +322,7 @@ void Player::setPosition(vector3d position)
 
 bool Player::isDead()
 {
-	if (health <= 0 || cam->getLocation().y<-100)
+	if (health <= 0 || cam->getLocation().y < -100)
 		return true;
 
 	return false;
@@ -309,6 +332,7 @@ void Player::resetPlayer()
 {
 	setHealth(100);
 	setPosition(startPoint);
+	resetArsenal();
 	points = 0;
 }
 
@@ -330,6 +354,26 @@ float Player::getY()
 float Player::getRadius()
 {
 	return r;
+}
+
+bool Player::wasHit(float dt)
+{
+	
+	if (beHit && hitTimeDisplay <= 0.3) {
+		hitTimeDisplay += dt;
+		return true;
+	}else if(beHit && hitTimeDisplay > 0.3){
+		hitTimeDisplay = 0;
+		beHit = false;
+		return false;
+	}
+
+	return false;
+}
+
+void Player::setHit(bool state)
+{
+	beHit = state;
 }
 
 

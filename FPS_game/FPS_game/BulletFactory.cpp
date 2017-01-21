@@ -18,6 +18,7 @@ void BulletFactory::update(float dt, Player * player, std::list<Enemy*>* enemy,M
 		it->collision.center = it->collision.center + it->directionVector*it->speed;
 		if (Collision::pointdistace(player->getCamera()->getLocation(), it->collision.center) < player->getRadius() + it->collision.r) {
 			player->addHealth(-it->strength);
+			player->setHit(true);
 			it->toDelete = true;
 		}
 		if (map->getTerrainHeight(it->collision.center.x, it->collision.center.z) > it->collision.center.y) {

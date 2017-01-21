@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
- Uint32 GameContener::lastTiks;
+Uint32 GameContener::lastTiks;
 GLuint GameContener::TextureID;
 GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512), gameRunning(true), gamePause(false)
 {
@@ -24,7 +24,7 @@ int GameContener::Run()
 			ProcessEvents();
 			DoEngine();
 			Render();
-		
+
 		}
 		if (gameRunning) {
 			WaitFrame(5);
@@ -154,9 +154,8 @@ void GameContener::Render()
 		return;
 	/* rysujemy tutaj */
 	glClearColor(0.4, 0.7, 1.0, 0.5); //clear the screen to black
-	glClearDepth(1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear the color buffer and the depth buffer
-	glClearDepth(0.0);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
@@ -174,61 +173,76 @@ void GameContener::Render()
 
 	fpsthink();
 
+
+
+
 	Uint32 delta = 0;
 	Uint32 tmp = SDL_GetTicks();
 	delta = tmp - lastTiks;
 	lastTiks = tmp;
 	float dt = ((float)delta) / 1000.f;
 
-
 	glDepthFunc(GL_LESS);
 	player->show(dt);
 
-
 	//std::cout<<player->getCamera()->getLocation();
-	
+
 	for (std::list<Enemy*>::iterator it = enemy->begin(); it != enemy->end(); it++) {
-	
-	(*it)->show(dt);
+
+		(*it)->show(dt);
 
 	}
 	bullets->update(dt, player, enemy, map);
-	
+
 	bullets->draw();
 	//glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	mapElements->draw(dt);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	map->renderTerrain();
-	
+
 	//always display gun
-	glDepthFunc(GL_ALWAYS);
-	if (player->haveAnyGun())
-		player->getCurrentWeapon()->show(player->getCamera()->getYaw(), player->getCamera()->getPitch(), dt);
-	glDepthFunc(GL_LESS);
-	
+	if (!player->isDead()) {
+		glClear(GL_DEPTH_BUFFER_BIT);
+		if (player->haveAnyGun())
+			player->getCurrentWeapon()->show(player->getCamera()->getYaw(), player->getCamera()->getPitch(), dt);
+	}
 
-//	std::cout << newpos << "\n";
+	//	std::cout << newpos << "\n";
 
-	//static float move=0;
-	//move += 0.02;
-	//glTranslatef(0, 0, move);
-	//enemy->draw(dt);
+		//static float move=0;
+		//move += 0.02;
+		//glTranslatef(0, 0, move);
+		//enemy->draw(dt);
 
-	//glTranslatef(30, 0, 0);
-	//enemy[frame]->draw(materials, materialsVertex);
-	//glTranslatef(30, 0, 0);
-	//enemy[frame]->draw(materials, materialsVertex);
-	//glTranslatef(30, 0, 0);
-	//enemy[frame]->draw(materials, materialsVertex);
-	//glTranslatef(30, 0, 0);
-	//enemy[frame]->draw(materials, materialsVertex);
-	//glTranslatef(30, 0, 0);
-	//enemy[frame]->draw(materials, materialsVertex);
+		//glTranslatef(30, 0, 0);
+		//enemy[frame]->draw(materials, materialsVertex);
+		//glTranslatef(30, 0, 0);
+		//enemy[frame]->draw(materials, materialsVertex);
+		//glTranslatef(30, 0, 0);
+		//enemy[frame]->draw(materials, materialsVertex);
+		//glTranslatef(30, 0, 0);
+		//enemy[frame]->draw(materials, materialsVertex);
+		//glTranslatef(30, 0, 0);
+		//enemy[frame]->draw(materials, materialsVertex);
 
-	
+
+	if (player->isDead()) {
+
+		text->renderText("GAME OVER", { 255,0,0 }, coordinates::CENTER, 0, 0);
+		if (keys[MOUSE_LEFT_BUTTION] == 1)
+			player->resetPlayer();
+	}
+
+	if (player->wasHit(dt)) {
+		text->displayRedSquare();
+	}
+
 	text->draw();
-
 	//	std::cout << framespersecond << "\n";
+
+
+
+
 	SDL_GL_SwapWindow(mainWindow);
 
 
@@ -285,33 +299,36 @@ void GameContener::MouseMotion(SDL_MouseMotionEvent * motion)
 		//int dy = motion->y - screen_height / 2;
 	}
 }
-void GameContener::MouseClick(SDL_MouseButtonEvent * click)
+void GameContener::MouseClickDown(SDL_MouseButtonEvent * click)
 {
-	//TODO: fires
+
 	if (click[0].type == SDL_MOUSEBUTTONDOWN)
-		keys[282] = 1;
+		keys[MOUSE_LEFT_BUTTION] = 1;
 	if (click[1].type == SDL_MOUSEBUTTONDOWN)
-		keys[283] = 1;
+		keys[MOUSE_MIDDLE_BUTTION] = 1;
 	if (click[2].type == SDL_MOUSEBUTTONDOWN)
-		keys[284] = 1;
+		keys[MOUSE_RIGHT_BUTTION] = 1;
 
-	if (click[0].type == SDL_MOUSEBUTTONUP)
-		keys[282] = 0;
-	if (click[1].type == SDL_MOUSEBUTTONUP)
-		keys[283] = 0;
-	if (click[2].type == SDL_MOUSEBUTTONUP)
-		keys[284] = 0;
 
-	if(player->haveAnyGun()){
-		bool isshot = false;
-		vector3d shotDirection;
-		isshot = player->getCurrentWeapon()->fire(shotDirection,player->getCamera()->getDirectionVector());
-		shotDirection.normalize();
-		if (isshot) {
-			bullets->addBullet(collisionsphere(player->getCamera()->getLocation()+shotDirection*1.5,0.5), shotDirection, 3, 10, player->getCurrentWeapon()->getPower(),player->getCurrentWeapon()->getBulletAnimation(),true);
-		}
+}
+
+void GameContener::MouseClickUp(SDL_MouseButtonEvent * click)
+{
+
+	if (click[0].type == SDL_MOUSEBUTTONUP) {
+		keys[MOUSE_LEFT_BUTTION] = 0;
+		keysChange[MOUSE_LEFT_BUTTION] = 0;
 	}
-	
+	if (click[1].type == SDL_MOUSEBUTTONUP) {
+		keys[MOUSE_MIDDLE_BUTTION] = 0;
+		keysChange[MOUSE_MIDDLE_BUTTION] = 0;
+	}
+	if (click[2].type == SDL_MOUSEBUTTONUP) {
+		keys[MOUSE_RIGHT_BUTTION] = 0;
+		keysChange[MOUSE_RIGHT_BUTTION] = 0;
+	}
+
+
 }
 void GameContener::ProcessEvents(void)
 {
@@ -334,7 +351,10 @@ void GameContener::ProcessEvents(void)
 			MouseMotion(&event.motion);
 			break;
 		case SDL_MOUSEBUTTONDOWN:
-			MouseClick(&event.button);
+			MouseClickDown(&event.button);
+			break;
+		case SDL_MOUSEBUTTONUP:
+			MouseClickUp(&event.button);
 			break;
 		case SDL_QUIT:
 			QuitGame();
@@ -343,49 +363,49 @@ void GameContener::ProcessEvents(void)
 		if (event.type == SDL_WINDOWEVENT) {
 			switch (event.window.event) {
 			case SDL_WINDOWEVENT_SHOWN:
-			//	SDL_Log("Window %d shown", event.window.windowID);
+				//	SDL_Log("Window %d shown", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_HIDDEN:
-			//	SDL_Log("Window %d hidden", event.window.windowID);
+				//	SDL_Log("Window %d hidden", event.window.windowID);
 				gamePause = true;
 				break;
 			case SDL_WINDOWEVENT_EXPOSED:
-			//	SDL_Log("Window %d exposed", event.window.windowID);
+				//	SDL_Log("Window %d exposed", event.window.windowID);
 				gamePause = false;
 				break;
 			case SDL_WINDOWEVENT_MOVED:
 				//SDL_Log("Window %d moved to %d,%d",event.window.windowID, event.window.data1,	event.window.data2);
 				break;
 			case SDL_WINDOWEVENT_RESIZED:
-			//	SDL_Log("Window %d resized to %dx%d",event.window.windowID, event.window.data1,	event.window.data2);
+				//	SDL_Log("Window %d resized to %dx%d",event.window.windowID, event.window.data1,	event.window.data2);
 				resizeWindow(event.window.data1, event.window.data2);
 				screen_width = event.window.data1;
 				screen_height = event.window.data2;
 
 				break;
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
-			//	SDL_Log("Window %d size changed to %dx%d",event.window.windowID, event.window.data1,event.window.data2);
+				//	SDL_Log("Window %d size changed to %dx%d",event.window.windowID, event.window.data1,event.window.data2);
 				break;
 			case SDL_WINDOWEVENT_MINIMIZED:
 				//SDL_Log("Window %d minimized", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_MAXIMIZED:
-			//	SDL_Log("Window %d maximized", event.window.windowID);
+				//	SDL_Log("Window %d maximized", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_RESTORED:
 				//SDL_Log("Window %d restored", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_ENTER:
-			//	SDL_Log("Mouse entered window %d",event.window.windowID);
+				//	SDL_Log("Mouse entered window %d",event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_LEAVE:
-			//	SDL_Log("Mouse left window %d", event.window.windowID);
+				//	SDL_Log("Mouse left window %d", event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_FOCUS_GAINED:
-			//	SDL_Log("Window %d gained keyboard focus",event.window.windowID);
+				//	SDL_Log("Window %d gained keyboard focus",event.window.windowID);
 				break;
 			case SDL_WINDOWEVENT_FOCUS_LOST:
-			//	SDL_Log("Window %d lost keyboard focus",event.window.windowID);
+				//	SDL_Log("Window %d lost keyboard focus",event.window.windowID);
 				gamePause = true;
 				break;
 
@@ -398,33 +418,33 @@ void GameContener::ProcessEvents(void)
 void GameContener::StartEngine()
 {
 	SDL_Init(0);
-	player = new Player(vector3d(10,10,-10),0);
-//	player->addWeapon("pistol", 0.5, true, 50, 300, 5, 12, 1000, 1000, "data/2/gun/Handgun_Game_Cycles_");
-	//TODO: weapon speed
+	player = new Player(vector3d(10, 10, -10), 0);
+	//	player->addWeapon("pistol", 0.5, true, 50, 300, 5, 12, 1000, 1000, "data/2/gun/Handgun_Game_Cycles_");
+		//TODO: weapon speed
 	animations = new GameAnimation();
 	animations->addAllStartAnimation();
-	player->addWeapon("pistol", 2,false, 10, 300, 5, 12, 1000, 1000, animations,animationName::PistolNormal);
-	player->addWeapon("AK", 2, true, 15, 500, 5, 100, 80, 80, animations, animationName::AKNormal);
-	player->addWeapon("Shotgun", 2, false, 200, 20, 2, 2, 20, 20, animations, animationName::ShotgunNormal);
+	player->addWeapon("pistol",  0.5, 1,  10, 300, 5, 12, 1000, 1000, animations, animationName::PistolNormal);
+	player->addWeapon("AK",0.3, 2,  15, 500, 5, 100, 80, 80, animations, animationName::AKNormal);
+	player->addWeapon("Shotgun", 1.5, 1.5,  200, 20, 2, 2, 20, 20, animations, animationName::ShotgunNormal);
 
 	map->initTerrain("data/heightMap.bmp", 0.1);
 	enemy = new std::list<Enemy*>;
-	enemy->push_back(new Enemy(100,0.1,10,collisionsphere(vector3d(100,100,100),2),vector3d(0,0,0),player->getCamera()->getLocation(), animations,1,4,0.5));
+	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(100, 100, 100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
 
 	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(-100, 100, -100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
 	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(-100, 100, 100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
 	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(100, 100, -100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
 	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(0, 100, 0), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
 	bullets = new BulletFactory();
-	
-		mapElements = new WorldObjects();
+
+	mapElements = new WorldObjects();
 	mapElements->addModel(animations->getAnimation(animationName::ObjectRock), 10, map->terrain->width, map->terrain->height);
 	mapElements->addModel(animations->getAnimation(animationName::ObjectTree), 5, map->terrain->width, map->terrain->height);
-	
-	for (int i = 0; i < mapElements->getSize(); i++){
-		vector3d tmp= mapElements->getPosition(i);
+
+	for (int i = 0; i < mapElements->getSize(); i++) {
+		vector3d tmp = mapElements->getPosition(i);
 		tmp.changeY(map->getTerrainHeight(tmp.getX(), tmp.getZ()));
-		mapElements->setHeight(i,tmp.getY());
+		mapElements->setHeight(i, tmp.getY());
 	}
 
 	return;
@@ -433,11 +453,11 @@ void GameContener::DoEngine()
 {
 	if (gamePause || !gameRunning)
 		return;
-	
-	if (player->getHealth() > 0) {
-		player->update(keys, keysChange, map->getTerrainHeight(player->getX(), player->getZ()), mapElements, map);
+
+	if (player->getHealth() >= 0) {
+		player->update(keys, keysChange, map->getTerrainHeight(player->getX(), player->getZ()), mapElements, map, bullets);
 		for (std::list<Enemy*>::iterator it = enemy->begin(); it != enemy->end(); it++) {
-			(*it)->update(map->getTerrainHeight((*it)->getSphere()->center.getX(), (*it)->getSphere()->center.getZ()), mapElements, player->getCamera()->getLocation(),player->getRadius(), bullets);
+			(*it)->update(map->getTerrainHeight((*it)->getSphere()->center.getX(), (*it)->getSphere()->center.getZ()), mapElements, player->getCamera()->getLocation(), player->getRadius(), bullets);
 		}
 		//check that enemy is dead and add score to player
 		std::list<Enemy*>::iterator it = enemy->begin();
@@ -453,8 +473,6 @@ void GameContener::DoEngine()
 
 		}
 
-
-
 		if (player->haveAnyGun()) {
 			text->changeValues(player->getHealth(), player->getEnergy(), player->getCurrentWeapon()->getAmmoClip(), player->getCurrentWeapon()->getAllBullets(), player->getPoints(), player->getCurrentWeapon()->getName(), "0.lvl0", framespersecond);
 		}
@@ -464,10 +482,10 @@ void GameContener::DoEngine()
 	}
 	else {
 		//text->renderText("GAME OVER", SDL_Color{ 255,0,0 }, coordinates::CENTER, 0, 0);
-		player->resetPlayer();
+
 	}
-	
-		return;
+
+	return;
 }
 void GameContener::WaitFrame(int fps)
 {

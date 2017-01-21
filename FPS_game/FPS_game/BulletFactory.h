@@ -12,6 +12,8 @@
 #include "ObjectContainer.h"
 #include "Map.h"
 class Enemy;
+class Player;
+
 struct Bullet
 {
 	float speed;

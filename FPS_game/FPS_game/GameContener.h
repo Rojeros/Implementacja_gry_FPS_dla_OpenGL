@@ -64,7 +64,8 @@ private:
 	void HandleKeyDown(SDL_Keysym* keysym);
 	void HandleKeyUp(SDL_Keysym* keysym);
 	void MouseMotion(SDL_MouseMotionEvent * motion);
-	void MouseClick(SDL_MouseButtonEvent * click);
+	void MouseClickDown(SDL_MouseButtonEvent * click);
+	void MouseClickUp(SDL_MouseButtonEvent * click);
 	void ProcessEvents(void);
 	bool SetupRC();
 	void StartEngine();
