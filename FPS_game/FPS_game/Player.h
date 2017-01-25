@@ -15,7 +15,7 @@
 class BulletFactory;
 
 static float LOOK_SPEED = 0.005;
-static float WALK_SPEED = 0.1;
+static float WALK_SPEED = 0.3;
 
 
 #define MOUSE_LEFT_BUTTION 282
@@ -47,6 +47,7 @@ private:
 	std::vector<Weapon*> *arsenal;
 	int currentWeaponNUmber;
 	float r;
+	bool isLevelFinished;
 
 public:
 	Player(vector3d position, int points);
@@ -79,8 +80,10 @@ public:
 	float getZ();
 	float getY();
 	float getRadius();
+	bool isLevelEnd();
 	bool wasHit(float dt);
 	void setHit(bool state);
+	void setNewLevelState();
 
 
 };

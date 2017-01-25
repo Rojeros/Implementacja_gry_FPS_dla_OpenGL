@@ -16,7 +16,7 @@ Weapon::Weapon()
 	bulletAnimation = NULL;
 	isAim = false;
 	isRealoading = false;
-	isCopy = false;
+	isCopy = true;
 }
 Weapon::Weapon(std::string name, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, std::string path) {
 
@@ -74,15 +74,17 @@ Weapon::Weapon(std::string name, float speedOfFireAnimation, float speedOfReload
 	setRotation(vector3d(0, 0, 0));
 	setCurrentPosition(vector3d(-0.06, 0.13, 0.13));
 	setCurrentRotation(vector3d(0, 0, 0));
-	isCopy = false;
+	isCopy = true;
 }
 
 Weapon::~Weapon()
 {
-	
+	if(!isCopy){
 	delete normalStateAnimation;
 	delete fireStateAnimation;
 	delete reloadStateAnimation;
+	delete bulletAnimation;
+	}
 }
 
 void Weapon::setName(std::string name_p) {
@@ -182,7 +184,6 @@ void Weapon::update(vector3d newPosition) {
 bool Weapon::fire(vector3d& direction, vector3d& camdirection) {
 	if (isRealoading)
 		return 0;
-
 
 		if (currentState==1)
 		{

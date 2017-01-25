@@ -36,6 +36,7 @@ int LevelLoad::parseMaterialFile(char* line, std::string path, std::vector<std::
 
 	if (!mtlin.is_open())
 	{
+		std::cout << "cant open mtl file\n";
 		return -1;
 	}
 
@@ -45,6 +46,7 @@ int LevelLoad::parseMaterialFile(char* line, std::string path, std::vector<std::
 		mtlin.getline(c, 200);
 		tmp->push_back(c);
 	}
+	return 0;
 }
 int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * newObject, std::vector<material> & mainMaterial)
 {
@@ -53,7 +55,9 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 	//find path to materials file
 	std::string path = fileName.substr(0, ((fileName.find_last_of('/') + 1 != std::string::npos) ? (fileName.find_last_of('/') + 1) : 0));
 	//get all line of file
-	parseMaterialFile(line, path, &tmp);
+	if (parseMaterialFile(line, path, &tmp) == 1) {
+		return -1;
+	}
 
 	//line buffer
 	char name[200];
@@ -506,7 +510,9 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 		else if (buf[0] == 'm' && buf[1] == 't' && buf[2] == 'l' && buf[3] == 'l')	//add new material
 		{
 			if (newObject->isMaterialsLoaded == false) {
-				parseMaterial(buf, path, newObject, mainMaterial);
+				if (parseMaterial(buf, path, newObject, mainMaterial) == -1) {
+					exit(5);
+				}
 
 			}
 		}
@@ -627,4 +633,5 @@ std::vector<Object*>* LevelLoad::animation(std::string path, std::vector<materia
 
 LevelLoad::~LevelLoad()
 {
+	
 }

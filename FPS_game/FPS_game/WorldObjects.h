@@ -3,13 +3,20 @@
 #include "ObjectContainer.h"
 #include "Vector.h"
 #include "CollisionPlane.h"
-
+enum kind {
+	flora,
+	finish,
+	health,
+	ammo
+};
 struct ObjectInfo {
 	vector3d position;
 	vector3d scaling;
 	ObjectContainer * data;
 	CollisionPlane * coll[6];
-	ObjectInfo(vector3d position, vector3d scaling, ObjectContainer *data) :position(position), scaling(scaling) {
+	bool toDelete;
+	kind type;
+	ObjectInfo(vector3d position, vector3d scaling, ObjectContainer *data, kind type) :position(position), scaling(scaling), type(type),toDelete(false) {
 		this->data = data;
 		for (int i = 0; i < 6; i++) {
 			if (data->collision->size() == 0) {	//if dont have collision on file
@@ -30,12 +37,16 @@ class WorldObjects
 {
 public:
 	WorldObjects();
-	void addModel(std::string path,int size,int mapX,int mapZ);
-	void addModel(ObjectContainer * pointer, int size, int mapX, int mapZ);
+	void addModel(std::string path,int size,int mapX,int mapZ, kind type);
+	void addModel(ObjectContainer * pointer, int size, int mapX, int mapZ, kind type);
+	void addOneModel(ObjectContainer * pointer, vector3d position, kind type);
 	vector3d getPosition(int number);
 	void setHeight(int number, float height);
 	void draw(float dt);
+	void destroyObject(int number);
+	void update();
 	CollisionPlane * getCollisonPLane(int number,int iteration);
+	kind getType(int number);
 	int getSize();
 	~WorldObjects();
 private:

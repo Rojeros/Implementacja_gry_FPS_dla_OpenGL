@@ -26,7 +26,7 @@ struct material {
 	/// <summary>	The illum. </summary>
 	int illum;
 	/// <summary>	The texture. </summary>
-	int texture;
+	GLuint texture;
 
 	material(const char* na, float al, float n, float ni2, float* d, float* a, float* s, int i, int t);
 };

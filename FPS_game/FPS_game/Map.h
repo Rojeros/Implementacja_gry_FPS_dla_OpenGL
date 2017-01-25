@@ -2,6 +2,7 @@
 #include "Vector.h"
 #include "Collision.h"
 #include "CollisionPlane.h"
+#include "FreeImage.h"
 
 struct cellIndex
 {
@@ -18,7 +19,7 @@ typedef struct terrainT
 		terrainList = a;
 		width = b;
 		height = c;
-		terrainTexture[0]=0;
+		terrainTexture[0] = 0;
 		terrainTexture[1] = 0;
 	}
 };
@@ -54,7 +55,7 @@ public:
 
 
 	void loadHeightMap(char *fileName, float heightFactor);
-	void initTerrain(char *fileName, float heightFactor);
+	void initTerrain(char *fileName,char*floorTexture,char*horizonTexture, float heightFactor);
 	void freeTerrain();
 	void renderTerrain();
 	CollisionPlane ** getBox();

@@ -1,11 +1,11 @@
 #include "GameContener.h"
-#include "Player.h"
-#include <iostream>
-#include <vector>
+
 
 Uint32 GameContener::lastTiks;
 GLuint GameContener::TextureID;
-GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512), gameRunning(true), gamePause(false)
+
+
+GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512), gameRunning(true), gamePause(false),lvl(1)
 {
 	map = new Map();
 }
@@ -41,8 +41,13 @@ GameContener::~GameContener()
 {
 
 	delete  player;
-	delete map;
+	delete animations;
 	delete text;
+	delete map;
+	delete mapElements;
+	delete bullets;
+	while (!enemy->empty()) delete enemy->front(), enemy->pop_front();
+	delete enemy;
 
 }
 
@@ -418,28 +423,30 @@ void GameContener::ProcessEvents(void)
 void GameContener::StartEngine()
 {
 	SDL_Init(0);
-	player = new Player(vector3d(10, 10, -10), 0);
 	//	player->addWeapon("pistol", 0.5, true, 50, 300, 5, 12, 1000, 1000, "data/2/gun/Handgun_Game_Cycles_");
-		//TODO: weapon speed
+
 	animations = new GameAnimation();
-	animations->addAllStartAnimation();
-	player->addWeapon("pistol",  0.5, 1,  10, 300, 5, 12, 1000, 1000, animations, animationName::PistolNormal);
-	player->addWeapon("AK",0.3, 2,  15, 500, 5, 100, 80, 80, animations, animationName::AKNormal);
-	player->addWeapon("Shotgun", 1.5, 1.5,  200, 20, 2, 2, 20, 20, animations, animationName::ShotgunNormal);
+	
+	animations->addAllStartAnimation(screen_height,screen_width,text,mainWindow);
 
-	map->initTerrain("data/heightMap.bmp", 0.1);
+	map->initTerrain("data/heightMap.bmp","data/grass2.bmp","data/water.bmp", 0.1);
+	player = new Player(vector3d(rand() % map->terrain->width, 20, -rand() % map->terrain->height), 0);
+
+	player->addWeapon("pistol", 0.5, 1, 10, 300, 5, 12, 1000, 1000, animations, animationName::PistolNormal);
+	player->addWeapon("AK", 0.3, 2, 15, 500, 5, 100, 80, 80, animations, animationName::AKNormal);
+	player->addWeapon("Shotgun", 1.5, 1.5, 200, 20, 2, 2, 20, 20, animations, animationName::ShotgunNormal);
+
+
 	enemy = new std::list<Enemy*>;
-	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(100, 100, 100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
+	for (int i = 0; i < lvl + 4;i++)
+	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(rand() % map->terrain->width, 50, -rand() % map->terrain->height), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
 
-	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(-100, 100, -100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
-	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(-100, 100, 100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
-	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(100, 100, -100), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
-	enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(0, 100, 0), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
 	bullets = new BulletFactory();
 
 	mapElements = new WorldObjects();
-	mapElements->addModel(animations->getAnimation(animationName::ObjectRock), 10, map->terrain->width, map->terrain->height);
-	mapElements->addModel(animations->getAnimation(animationName::ObjectTree), 5, map->terrain->width, map->terrain->height);
+	mapElements->addModel(animations->getAnimation(animationName::ObjectRock), 10, map->terrain->width, map->terrain->height,kind::flora);
+	mapElements->addModel(animations->getAnimation(animationName::ObjectTree), 5, map->terrain->width, map->terrain->height, kind::flora);
+	mapElements->addModel(animations->getAnimation(animationName::Portal), 1, map->terrain->width, map->terrain->height, kind::finish);
 
 	for (int i = 0; i < mapElements->getSize(); i++) {
 		vector3d tmp = mapElements->getPosition(i);
@@ -449,6 +456,7 @@ void GameContener::StartEngine()
 
 	return;
 }
+
 void GameContener::DoEngine()
 {
 	if (gamePause || !gameRunning)
@@ -464,7 +472,18 @@ void GameContener::DoEngine()
 		while (it != enemy->end()) {
 			if ((*it)->isDead()) {
 				player->addPoints((*it)->getStrength());
+				
+				
+				//add ammo or  health bonus 
+				int g = rand() % 8;
+				if (g == 0)
+					mapElements->addOneModel(animations->getAnimation(animationName::AddBullets), (*it)->getSphere()->center, kind::ammo);
+				else if (g == 1)
+					mapElements->addOneModel(animations->getAnimation(animationName::AddHealth), (*it)->getSphere()->center, kind::health);
+
 				it = enemy->erase(it);
+				enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(rand() % map->terrain->width, 50, -rand() % map->terrain->height), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
+
 			}
 			else
 			{
@@ -472,12 +491,50 @@ void GameContener::DoEngine()
 			}
 
 		}
+		mapElements->update();
 
 		if (player->haveAnyGun()) {
 			text->changeValues(player->getHealth(), player->getEnergy(), player->getCurrentWeapon()->getAmmoClip(), player->getCurrentWeapon()->getAllBullets(), player->getPoints(), player->getCurrentWeapon()->getName(), "0.lvl0", framespersecond);
 		}
 		else {
-			text->changeValues(player->getHealth(), player->getEnergy(), 0, 0, player->getPoints(), "    ", "0.lvl0", framespersecond);
+			text->changeValues(player->getHealth(), player->getEnergy(), 0, 0, player->getPoints(), "    ", "lvl: "+std::to_string(lvl), framespersecond);
+		}
+		if (player->isLevelEnd()) {
+
+
+			map->~Map();
+			map = new Map();
+			map->initTerrain("data/heightMap.bmp", "data/grass2.bmp", "data/water.bmp", float(rand() % 25) / (float)100);
+
+			mapElements->~WorldObjects();
+			mapElements = new WorldObjects();
+			mapElements->addModel(animations->getAnimation(animationName::ObjectRock), 8, map->terrain->width, map->terrain->height, kind::flora);
+			mapElements->addModel(animations->getAnimation(animationName::ObjectTree), 2, map->terrain->width, map->terrain->height, kind::flora);
+			mapElements->addModel(animations->getAnimation(animationName::Portal), 1, map->terrain->width, map->terrain->height, kind::finish);
+			for (int i = 0; i < mapElements->getSize(); i++) {
+				vector3d tmp = mapElements->getPosition(i);
+				tmp.changeY(map->getTerrainHeight(tmp.getX(), tmp.getZ()));
+				mapElements->setHeight(i, tmp.getY());
+			}
+
+
+			enemy->clear();
+			for (int i = 0; i < lvl + 4; i++)
+				enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(rand() % map->terrain->width, 50, -rand() % map->terrain->height), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
+
+			lvl++;
+			player->setNewLevelState();
+			player->setPosition(vector3d( rand() % map->terrain->width -15, 20, -rand() % map->terrain->height+15));
+			player->setStartPosition(player->getCamera()->getLocation());
+			if (player->getHealth() < 100) {
+				player->setHealth(100);
+			}
+			player->addPoints(1000);
+
+			bullets->~BulletFactory();
+			bullets = new BulletFactory();
+
+		
 		}
 	}
 	else {
@@ -517,6 +574,8 @@ void GameContener::RenderPause()
 	SDL_GL_SwapWindow(mainWindow);
 
 }
+
+
 void GameContener::QuitGame()
 {
 	// Delete our OpengL context

@@ -62,6 +62,23 @@ Map::Map()
 
 Map::~Map()
 {
+	glDeleteTextures(1, (GLuint*)&terrain->terrainTexture[0]);
+	glDeleteTextures(1, (GLuint*)&terrain->terrainTexture[1]);
+	for (int i = 0; i < terrain->width; i++) {
+
+		delete[] terrain->vertices[i];
+
+	}
+	delete[] terrain->vertices;
+	glDeleteLists(terrain->terrainList, 1);
+	delete box[0];
+	delete box[1];
+	delete box[2];
+	delete box[3];
+	delete box[4];
+	delete box[5];
+
+	delete terrain;
 }
 
 
@@ -122,7 +139,7 @@ void Map::loadHeightMap(char *fileName, float heightFactor)
 
 
 
-void Map::initTerrain(char *fileName, float heightReducingFactor)
+void Map::initTerrain(char *fileName, char*floorTexture, char*horizonTexture,float heightReducingFactor)
 {
 	int i, j;
 	lastPosition=vector2D(0,0);
@@ -175,27 +192,144 @@ void Map::initTerrain(char *fileName, float heightReducingFactor)
 
 	glEndList();
 
+
+
+
+
 	glEnable(GL_TEXTURE_2D);
-	//TODO: change to freeimage
-	SDL_Surface * tex= SDL_LoadBMP("data/grass2.bmp");
-	tex = SDL_ConvertSurfaceFormat(tex, SDL_PIXELFORMAT_RGB24, 0);
+	//image format
+	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
+	//pointer to the image, once loaded
+	FIBITMAP *dib(0);
+	//pointer to the image data
+	BYTE* bits(0);
+	//image width and height
+	unsigned int width(0), height(0);
+	//OpenGL's image ID to map to
+
+
+	//check the file signature and deduce its format
+	fif = FreeImage_GetFileType(floorTexture, 0);
+	//if still unknown, try to guess the file format from the file extension
+	if (fif == FIF_UNKNOWN)
+		fif = FreeImage_GetFIFFromFilename(floorTexture);
+	//if still unkown, return failure
+	if (fif == FIF_UNKNOWN) {
+		std::cout << "image loading error\n";
+		return;
+	}
+	//std::cout << "FIF " << fif << " " << filename << std::endl;
+
+	//check that the plugin has reading capabilities and load the file
+	if (FreeImage_FIFSupportsReading(fif))
+		dib = FreeImage_Load(fif, floorTexture);
+	//if the image failed to load, return failure
+	if (!dib) {
+		std::cout << "image loading error\n";
+		return ;
+	}
+	//retrieve the image data
+	bits = FreeImage_GetBits(dib);
+	//get the image width and height
+	width = FreeImage_GetWidth(dib);
+	height = FreeImage_GetHeight(dib);
+
+	FREE_IMAGE_COLOR_TYPE color = FreeImage_GetColorType(dib);
+	if (color != FIC_RGB && color != FIC_RGBALPHA)
+	{
+		FreeImage_Unload(dib);
+		std::cout << "image loading error\n";
+		return ;
+	}
+	//if this somehow one of these failed (they shouldn't), return failure
+	//	std::cout << (bits == 0) << std::endl;
+	if ((bits == 0) || (width == 0) || (height == 0)) {
+		std::cout << "image loading error\n";
+		return ;
+	}
+	//std::cout << width << " " << height << std::endl;
+	//if this texture ID is in use, unload the current texture
+
 	glGenTextures(1, (GLuint*)&terrain->terrainTexture[0]);
 	glBindTexture(GL_TEXTURE_2D, (GLuint)terrain->terrainTexture[0]);
-
-	gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB, tex->w, tex->h, GL_RGB, GL_UNSIGNED_BYTE, tex->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, (color == FIC_RGB) ? GL_BGR : GL_BGRA, GL_UNSIGNED_BYTE, bits);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glDisable(GL_TEXTURE_2D);
 
 
+
+
 	glEnable(GL_TEXTURE_2D);
-	//TODO: change to freeimage
-	SDL_Surface * tex2 = SDL_LoadBMP("data/water.bmp");
-	tex2 = SDL_ConvertSurfaceFormat(tex2, SDL_PIXELFORMAT_RGB24, 0);
+	//image format
+	fif = FIF_UNKNOWN;
+	//pointer to the image, once loaded
+	dib=0;
+	//pointer to the image data
+	bits=0;
+	//image width and height
+	width=0;
+	height=0;
+	//OpenGL's image ID to map to
+
+
+	//check the file signature and deduce its format
+	fif = FreeImage_GetFileType(horizonTexture, 0);
+	//if still unknown, try to guess the file format from the file extension
+	if (fif == FIF_UNKNOWN)
+		fif = FreeImage_GetFIFFromFilename(horizonTexture);
+	//if still unkown, return failure
+	if (fif == FIF_UNKNOWN) {
+		std::cout << "image loading error\n";
+		return;
+	}
+	//std::cout << "FIF " << fif << " " << filename << std::endl;
+
+	//check that the plugin has reading capabilities and load the file
+	if (FreeImage_FIFSupportsReading(fif))
+		dib = FreeImage_Load(fif, horizonTexture);
+	//if the image failed to load, return failure
+	if (!dib) {
+		std::cout << "image loading error\n";
+		return;
+	}
+	//retrieve the image data
+	bits = FreeImage_GetBits(dib);
+	//get the image width and height
+	width = FreeImage_GetWidth(dib);
+	height = FreeImage_GetHeight(dib);
+
+	color = FreeImage_GetColorType(dib);
+	if (color != FIC_RGB && color != FIC_RGBALPHA)
+	{
+		FreeImage_Unload(dib);
+		std::cout << "image loading error\n";
+		return;
+	}
+	//if this somehow one of these failed (they shouldn't), return failure
+	//	std::cout << (bits == 0) << std::endl;
+	if ((bits == 0) || (width == 0) || (height == 0)) {
+		std::cout << "image loading error\n";
+		return;
+	}
+	//std::cout << width << " " << height << std::endl;
+	//if this texture ID is in use, unload the current texture
+
 	glGenTextures(1, (GLuint*)&terrain->terrainTexture[1]);
 	glBindTexture(GL_TEXTURE_2D, (GLuint)terrain->terrainTexture[1]);
-
-	gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, tex2->w, tex2->h, GL_RGB, GL_UNSIGNED_BYTE, tex2->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, (color == FIC_RGB) ? GL_BGR : GL_BGRA, GL_UNSIGNED_BYTE, bits);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glDisable(GL_TEXTURE_2D);
@@ -214,15 +348,23 @@ void Map::initTerrain(char *fileName, float heightReducingFactor)
 
 void Map::freeTerrain()
 {
-	int i;
+	glDeleteTextures(1, (GLuint*)&terrain->terrainTexture[0]);
+	glDeleteTextures(1, (GLuint*)&terrain->terrainTexture[1]);
+	for (int i = 0; i < terrain->width; i++) {
 
-	for (i = 0; i < terrain->width; i++)
-	{
-		delete(terrain->vertices[i]);
+		delete[] terrain->vertices[i];
+
 	}
-	delete(terrain->vertices);
-
+	delete[] terrain->vertices;
 	glDeleteLists(terrain->terrainList, 1);
+	delete box[0];
+	delete box[1];
+	delete box[2];
+	delete box[3];
+	delete box[4];
+	delete box[5];
+
+	delete terrain;
 }
 
 

@@ -6,23 +6,29 @@ WorldObjects::WorldObjects()
 {
 }
 
-void WorldObjects::addModel(std::string path, int size, int mapX, int mapZ)
+void WorldObjects::addModel(std::string path, int size, int mapX, int mapZ, kind type)
 {
 	objects.push_back(new ObjectContainer(path,5,false));
 	for (int i = 0; i < size; i++) {
 		float scale = (float)(rand() % 100) / (float)100 + 1.0f;
-		worldContainer.push_back(ObjectInfo(vector3d(rand()%mapX,0,-rand()%mapZ),vector3d(scale, scale, scale),objects.back()));
+		worldContainer.push_back(ObjectInfo(vector3d(rand()%mapX,0,-rand()%mapZ),vector3d(scale, scale, scale),objects.back(),type));
 
 	}
 }
 
-void WorldObjects::addModel(ObjectContainer * pointer, int size, int mapX, int mapZ)
+void WorldObjects::addModel(ObjectContainer * pointer, int size, int mapX, int mapZ,kind type)
 {
 	for (int i = 0; i < size; i++) {
 		float scale = (float)(rand() % 100) / (float)100 + 1.0f;
-		worldContainer.push_back(ObjectInfo(vector3d(rand() % mapX, 0, -rand() % mapZ), vector3d(scale, scale, scale), pointer));
+		worldContainer.push_back(ObjectInfo(vector3d(rand() % mapX, 0, -rand() % mapZ), vector3d(scale, scale, scale), pointer,type));
 
 	}
+}
+
+void WorldObjects::addOneModel(ObjectContainer * pointer, vector3d position, kind type)
+{
+	position.changeY(position.getY() - 1);
+	worldContainer.push_back(ObjectInfo(position, vector3d(0.3, 0.3, 0.3), pointer, type));
 }
 
 vector3d WorldObjects::getPosition(int number)
@@ -53,9 +59,32 @@ void WorldObjects::draw(float dt)
 	}
 }
 
+void WorldObjects::destroyObject(int number)
+{
+	worldContainer.at(number).toDelete=true;
+}
+
+void WorldObjects::update()
+{
+	
+	for (std::vector<ObjectInfo>::iterator it = worldContainer.begin(); it != worldContainer.end(); ){
+		if (it->toDelete == true) {
+			it = worldContainer.erase(it);
+		}
+		else {
+			it++;
+		}
+	}
+}
+
 CollisionPlane* WorldObjects::getCollisonPLane(int number,int iteration)
 {
 	return worldContainer.at(number).coll[iteration];
+}
+
+kind WorldObjects::getType(int number)
+{
+	return worldContainer.at(number).type;
 }
 
 
@@ -67,4 +96,6 @@ int WorldObjects::getSize()
 
 WorldObjects::~WorldObjects()
 {
+	worldContainer.clear();
+	objects.clear();
 }

@@ -1,20 +1,17 @@
 #pragma once
-#ifdef WIN32
-#include <windows.h>
-#endif
 
 #include <string>
 #include <iostream>
 #include "Camera.h"
 #include <GL/glew.h>
 #include <SDL.h>
+#undef main
 #include "Player.h"
 #include "Map.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "LevelLoad.h"
 #include "Object.h"
-#include "Text.h"
 #include "ObjectContainer.h"
 #include <cstdlib>
 #include <ctime>
@@ -24,6 +21,9 @@
 #include <list>
 #include "BulletFactory.h"
 #include "GameAnimation.h"
+#include <iostream>
+#include <vector>
+
 
 class GameContener
 {
@@ -33,15 +33,16 @@ public:
 	~GameContener();
 
 private:
+	friend class GameAnimation;
 	static GLuint TextureID;
 	// Our SDL_Window
 	SDL_Window *mainWindow;
 	// Our opengl context handle
 	SDL_GLContext mainContext;
 	SDL_Renderer *renderer = NULL;
-
 	Player * player;
 	Map * map;
+	int lvl;
 	bool keys[285];
 	bool keysChange[285];
 	int screen_width  ;
@@ -73,6 +74,7 @@ private:
 	void Render();
 	void WaitFrame(int fps);
 	void RenderPause();
+
 
 	static Uint32 lastTiks;
 	// How many frames time values to keep

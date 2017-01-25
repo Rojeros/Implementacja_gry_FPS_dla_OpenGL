@@ -2,10 +2,9 @@
 #include "GameContener.h"
 
 
-#ifdef WIN32
-#undef main
-#endif
-int main(int argc, char *argv[])
+
+
+int main(int argc, char *args[])
 {
 	GameContener newGame;
 	newGame.Run();

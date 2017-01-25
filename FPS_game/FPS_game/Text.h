@@ -30,10 +30,10 @@ public:
 	void renderText(const std::string &message,SDL_Color color, coordinates coord,  int line, int column);
 	protected:
 		SDL_Renderer * renderer;
-		int width;
-		int height;
+		float width;
+		float height;
 		TTF_Font * font;
-		int fontSize;
+		float fontSize;
 };
 
 class GameUI :public Text {
@@ -67,6 +67,7 @@ public:
 	void changeValues(int health,int energy,int ammo,int allammo,int score,std::string weaponName,std::string level,int fps);
 	void draw();
 	void displayRedSquare();
+	~GameUI();
 	protected:
 		int healthTexture;
 		int energyTexture;

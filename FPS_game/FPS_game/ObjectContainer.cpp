@@ -2,14 +2,14 @@
 
 
 
-ObjectContainer::ObjectContainer(std::string path, float time, bool isLooped):currentFrame(0), duration(time),isLoop(isLooped), displayed(false)
+ObjectContainer::ObjectContainer(std::string path, float time, bool isLooped):currentFrame(0), duration(time),isLoop(isLooped), displayed(false),time(0)
 {
 
 	LevelLoad a;
 	collision = new std::vector<CollisionPlane*>();
 	animation=a.animation(path, mainMaterial, mainMaterialsVertex,collision,frames);
-
-	timePerFrame = time / (float)frames;
+	
+	timePerFrame = duration / (float)frames;
 	if (timePerFrame <= 0) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "timePerFrame is NULL", NULL);
 		exit(3);
@@ -27,11 +27,22 @@ bool ObjectContainer::animationEnded()
 
 ObjectContainer::~ObjectContainer()
 {
-	for (int i = 0; i < frames; i++) {
+	for (int i = 0; i < mainMaterial.size(); i++) {
+		glDeleteTextures(1,&mainMaterial[i].texture);
+	}
+
+
+	for (int i = 0; i < animation->size(); i++) {
+		if(animation->at(i)->vboId>0)
 		glDeleteBuffersARB(1, &animation->at(i)->vboId);
 		delete  animation->at(i);
 	}
 	delete animation;
+	for (int i = 0; i < collision->size(); i++) {
+		if (collision->at(i) != NULL)
+		delete  collision->at(i);
+	}
+	delete collision;
 }
 
 void ObjectContainer::draw(float dt)
@@ -71,8 +82,8 @@ void ObjectContainer::draw(float dt)
 
 void ObjectContainer::changeDurationOfAnimation(float time)
 {
-	this->time = time;
-	timePerFrame = this->time / (float)frames;
+	this->duration = time;
+	timePerFrame = this->duration / (float)frames;
 	if (timePerFrame <= 0) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", "timePerFrame is NULL", NULL);
 		exit(4);

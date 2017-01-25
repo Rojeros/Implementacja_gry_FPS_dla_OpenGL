@@ -14,6 +14,7 @@ Object::Object(int isMaterialTextureLoaded):isMaterialsLoaded(isMaterialTextureL
 
 Object::~Object()
 {
+
 }
 
 void Object::draw(std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex)

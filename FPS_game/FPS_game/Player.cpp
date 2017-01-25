@@ -2,7 +2,7 @@
 #include <SDL.h>
 
 
-Player::Player(vector3d position, int points) :health(100), energy(100), isSprint(false), points(points), dx(0), dy(0), isJump(false), jumpHeight(0)
+Player::Player(vector3d position, int points) :health(100), energy(100), isSprint(false), points(points), dx(0), dy(0), isJump(false), jumpHeight(0),isLevelFinished(false)
 {
 
 	force.change(0.0, -0.45, 0.0);
@@ -19,9 +19,12 @@ Player::Player(vector3d position, int points) :health(100), energy(100), isSprin
 
 Player::~Player()
 {
-
-	//TODO: delete all arsenal
-	//delete cam;
+	delete cam;
+	for (int i = 0; i < arsenal->size(); i++) {
+		delete arsenal->at(i);
+	}
+	arsenal->clear();
+	delete arsenal;
 }
 
 
@@ -86,7 +89,7 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 	}
 
 	if (keys[SDL_SCANCODE_LEFT] == 1 || keys[SDL_SCANCODE_A]) {
-		cam->strafe(-1 * WALK_SPEED * modifier);
+		cam->strafe(-1.0f * WALK_SPEED * modifier);
 		if (isSprint)
 			energy -= 0.5;
 	}
@@ -148,20 +151,33 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 
 
 
-	if (getY() > groundHeight + 2) {
-		if ((getY() - groundHeight) < 1) {
-			direction += vector3d(0, (groundHeight - getY()) + 2.0f, 0);
-			groundCollision = true;
-		}
-		if ((getY() - groundHeight) > 1)
-			direction += force;
+	//if (getY() > groundHeight + 4.0f) {
+	//	if ((getY() - groundHeight) < 4) {
+	//		direction += vector3d(0, (groundHeight - getY()) + 2.0f, 0);
+	//		groundCollision = true;
+	//	}
+	//	if ((getY() - groundHeight) > 4)
+	//		direction += force;
 
-	}
+	//}
 
-	if (getY() < groundHeight + 2.0f) {
-		direction += vector3d(0, groundHeight - getY() + 0.6f, 0);
+	//if (getY() < groundHeight + 4.0f) {
+	//	direction += vector3d(0, groundHeight - getY() + 0.6f, 0);
+	//	groundCollision = true;
+	//}
+
+
+
+	if (getY() - groundHeight <= 2) {
+		vector3d t = cam->getLocation();
+		t.changeY(t.getY() + 0.5);
+		cam->setLocation(t);
 		groundCollision = true;
 	}
+	else if(getY() - groundHeight > 2.6){
+		direction += force;
+	}
+
 	if (energy < 100 && !isSprint)
 		energy += 0.1;
 
@@ -171,17 +187,44 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 	vector3d newpos(cam->getLocation());
 
 	newpos += direction;
-
+	bool collide=false;
 	if (collisions != NULL) {
 		for (int i = 0; i < collisions->getSize(); i++) {
 			for (int j = 0; j < 6; j++) {
-				Collision::sphereplane(newpos,
+				collide=Collision::sphereplane(newpos,
 					collisions->getCollisonPLane(i, j)->getnormal(),
 					collisions->getCollisonPLane(i, j)->get1point(),
 					collisions->getCollisonPLane(i, j)->get2point(),
 					collisions->getCollisonPLane(i, j)->get3point(),
 					collisions->getCollisonPLane(i, j)->get4point(), r);
-
+				if ((collide == true) &&( collisions->getType(i) != kind::flora)) {
+					switch (collisions->getType(i))
+					{
+					case(kind::ammo):
+					{
+						for (int i = 0; i < arsenal->size(); i++) {
+							arsenal->at(i)->addAllBullets(50);
+						}
+						collisions->destroyObject(i);
+						break;
+					}
+					case(kind::health) :
+					{
+						if(health<150){
+						addHealth(+20);
+						collisions->destroyObject(i);
+						}
+						break;
+					}
+					case(kind::finish) :
+					{
+						isLevelFinished = true;
+						break;
+					}
+					default:
+						break;
+					}
+				}
 
 
 			}
@@ -316,6 +359,10 @@ int Player::getPoints()
 
 void Player::setPosition(vector3d position)
 {
+	if (position.x <= 0)
+		position.x = 15;
+	if (position.z >= 0)
+		position.z = -15;
 	cam->setLocation(position);
 }
 
@@ -356,6 +403,11 @@ float Player::getRadius()
 	return r;
 }
 
+bool Player::isLevelEnd()
+{
+	return isLevelFinished;
+}
+
 bool Player::wasHit(float dt)
 {
 	
@@ -374,6 +426,11 @@ bool Player::wasHit(float dt)
 void Player::setHit(bool state)
 {
 	beHit = state;
+}
+
+void Player::setNewLevelState()
+{
+	isLevelFinished = false;
 }
 
 

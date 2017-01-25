@@ -3,11 +3,13 @@
 Text::Text(SDL_Renderer * renderer, int width, int height, int fontSize) :renderer(renderer), width(width), height(height), fontSize(fontSize)
 {
 	font = TTF_OpenFont("data/arial.ttf", fontSize);
+
 }
 
 Text::~Text()
 {
 	TTF_CloseFont(font);
+
 }
 
 void Text::renderText(const std::string & message, SDL_Color color, coordinates coord, int line, int column)
@@ -27,8 +29,8 @@ void Text::renderText(const std::string & message, SDL_Color color, coordinates 
 
 
 
-	int tmp;
-	int x = 0, y = 0;
+	float tmp;
+	float x = 0, y = 0;
 	GLuint texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -90,6 +92,7 @@ void Text::renderText(const std::string & message, SDL_Color color, coordinates 
 void GameUI::changeValues(int health, int energy, int ammo, int allammo, int score, std::string weaponName, std::string level, int fps)
 {
 	if (healthTexture != health) {
+		SDL_FreeSurface(sFontHealth);
 		glGenTextures(1, &tex[0]);
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
 		healthTexture = health;
@@ -102,6 +105,7 @@ void GameUI::changeValues(int health, int energy, int ammo, int allammo, int sco
 		energyTexture = energy;
 	}
 	if (ammoTexture != ammo || allammoTexture != allammo) {
+		SDL_FreeSurface(sFontAmmo);
 		glGenTextures(1, &tex[1]);
 		glBindTexture(GL_TEXTURE_2D, tex[1]);
 		ammoTexture = ammo;
@@ -113,6 +117,7 @@ void GameUI::changeValues(int health, int energy, int ammo, int allammo, int sco
 	}
 
 	if (scoreTexture != score) {
+		SDL_FreeSurface(sFontScore);
 		glGenTextures(1, &tex[2]);
 		glBindTexture(GL_TEXTURE_2D, tex[2]);
 		scoreTexture = score;
@@ -122,6 +127,7 @@ void GameUI::changeValues(int health, int energy, int ammo, int allammo, int sco
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sFontScore->w, sFontScore->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, sFontScore->pixels);
 	}
 	if (weaponNameTexture != weaponName) {
+		SDL_FreeSurface(sFontWeaponName);
 		glGenTextures(1, &tex[3]);
 		glBindTexture(GL_TEXTURE_2D, tex[3]);
 		weaponNameTexture = weaponName;
@@ -131,6 +137,7 @@ void GameUI::changeValues(int health, int energy, int ammo, int allammo, int sco
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sFontWeaponName->w, sFontWeaponName->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, sFontWeaponName->pixels);
 	}
 	if (levelTexture != level) {
+		SDL_FreeSurface(sFontLevel);
 		glGenTextures(1, &tex[4]);
 		glBindTexture(GL_TEXTURE_2D, tex[4]);
 		levelTexture = level;
@@ -140,6 +147,7 @@ void GameUI::changeValues(int health, int energy, int ammo, int allammo, int sco
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sFontLevel->w, sFontLevel->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, sFontLevel->pixels);
 	}
 	if (fpsTexture != fps) {
+		SDL_FreeSurface(sFontFps);
 		glGenTextures(1, &tex[5]);
 		glBindTexture(GL_TEXTURE_2D, tex[5]);
 		fpsTexture = fps;
@@ -214,6 +222,17 @@ void GameUI::displayRedSquare()
 
 }
 
+GameUI::~GameUI()
+{
+	SDL_FreeSurface (sFontHealth);
+	SDL_FreeSurface (sFontAmmo);
+	SDL_FreeSurface (sFontScore);
+	SDL_FreeSurface (sFontWeaponName);
+	SDL_FreeSurface (sFontLevel);
+	SDL_FreeSurface( sFontFps);
+	SDL_FreeSurface( sFontAim);
+}
+
 void GameUI::draw(int index, coordinates coord, int line, int column, float widthT, float heightT)
 {
 	glMatrixMode(GL_MODELVIEW);
@@ -231,15 +250,15 @@ void GameUI::draw(int index, coordinates coord, int line, int column, float widt
 
 
 
-	int tmp;
-	int x = 0;
-	int	y = 0;
+	float tmp;
+	float x = 0;
+	float	y = 0;
 
 	glBindTexture(GL_TEXTURE_2D, tex[index]);
 	
 	glColor4f(1, 1, 1, 1);
 
-	int margin = height *0.03;
+	float margin = height *0.03;
 
 
 	if (coord == N || coord == NW || coord == NE)	//top
@@ -286,20 +305,20 @@ void GameUI::draw(int index, coordinates coord, int line, int column, float widt
 
 void GameUI::drawBoxes()
 {
-	int xl = 0;
-	int xr = 0;
-	int	y = 0;
-	int margin = height *0.04;
+	float xl = 0;
+	float xr = 0;
+	float	y = 0;
+	float margin = height *0.04;
 
 	float  minusLife = (float)( 100 - healthTexture)/100;
-	int boxLifeWidth = width*0.3;
+	float boxLifeWidth = width*0.3;
 	boxLifeWidth = boxLifeWidth - boxLifeWidth*minusLife;
 	float  green = 1 - minusLife;
 	float  redLife = minusLife;
 
 
 	float  minusEnergy = (float)(100 - energyTexture) / 100;
-	int boxEnergyWidth = width*0.3;
+	float boxEnergyWidth = width*0.3;
 	boxEnergyWidth = boxEnergyWidth - boxEnergyWidth*minusEnergy;
 	float  blue = 1 - minusEnergy;
 	float  redEnergy = minusEnergy;
