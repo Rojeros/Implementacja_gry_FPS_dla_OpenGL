@@ -7,7 +7,7 @@
 #include "Vector.h"
 #include "Object.h"
 #include "CollisionPlane.h"
-#include "LevelLoad.h"
+#include "LoadObjects.h"
 
 class ObjectContainer
 {

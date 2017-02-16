@@ -26,6 +26,7 @@ public:
 	void changeX(float a);
 	void changeY(float b);
 	void changeZ(float c);
+	vector3d multipleConstWithoutY(const vector3d& vec2);
 	void normalize();
 	static vector3d normalVector(const vector3d & vec1, const vector3d & vec2, const vector3d& vec3);
 	bool operator==(const vector3d& vec2);

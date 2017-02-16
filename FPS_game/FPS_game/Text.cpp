@@ -3,7 +3,11 @@
 Text::Text(SDL_Renderer * renderer, int width, int height, int fontSize) :renderer(renderer), width(width), height(height), fontSize(fontSize)
 {
 	font = TTF_OpenFont("data/arial.ttf", fontSize);
-
+	if (font == NULL) {
+		std::string text = "can't open a directory: data";
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+		exit(3);
+	}
 }
 
 Text::~Text()

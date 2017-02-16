@@ -269,3 +269,8 @@ void Weapon::show(float angleYaw, float anglePitch, float dt) {
 	glPopMatrix();
 	//glEnable(GL_DEPTH_TEST);
 }
+
+void Weapon::setAiming(bool state)
+{
+	isAim = state;
+}

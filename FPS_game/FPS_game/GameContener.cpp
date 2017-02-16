@@ -5,9 +5,89 @@ Uint32 GameContener::lastTiks;
 GLuint GameContener::TextureID;
 
 
-GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512), gameRunning(true), gamePause(false),lvl(1)
+GameContener::GameContener() :full_screen(0), screen_width(512), screen_height(512), gameRunning(true), gamePause(false),lvl(1),mouseSensitivity(0.5),zoom(0.1)
 {
 	map = new Map();
+
+	const SDL_MessageBoxButtonData buttons[] = {
+		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 5, "Cancel" },
+	{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 4, "Window" },
+	{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 3, "1366x768" },
+	{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "1280x720 " },
+	{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "1024x768" },
+		{ /* .flags, .buttonid, .text */        0, 0, "800x600" }
+
+
+
+
+
+	};
+	const SDL_MessageBoxColorScheme colorScheme = {
+		{ /* .colors (.r, .g, .b) */
+		  /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+			{ 255,   0,   0 },
+			/* [SDL_MESSAGEBOX_COLOR_TEXT] */
+			{ 0, 255,   0 },
+		/* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+			{ 255, 255,   0 },
+		/* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+			{ 0,   0, 255 },
+		/* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+			{ 255,   0, 255 }
+		}
+	};
+	const SDL_MessageBoxData messageboxdata = {
+		SDL_MESSAGEBOX_INFORMATION, /* .flags */
+		NULL, /* .window */
+		"Hello", /* .title */
+		"Select resolution", /* .message */
+		SDL_arraysize(buttons), /* .numbuttons */
+		buttons, /* .buttons */
+		&colorScheme /* .colorScheme */
+	};
+	int buttonid;
+	if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+		SDL_Log("error displaying message box");
+		exit(4);
+	}
+	if (buttonid == -1) {
+		SDL_Log("no selection");
+		exit(4);
+	}
+	else {
+		switch (buttonid)
+		{
+		case(0) :
+			screen_width = 800;
+			screen_height = 600;
+			full_screen = 1;
+			break;
+		case(1) :
+			screen_width = 1024;
+			screen_height = 768;
+			full_screen = 1;
+			break;
+		case(2) :
+			screen_width = 1280;
+			screen_height = 720;
+			full_screen = 1;
+			break;
+		case(3) :
+			screen_width = 1366;
+			screen_height = 768;
+			full_screen = 1;
+			break;
+		case(4) :
+			screen_width = 500;
+			screen_height = 500;
+			full_screen = 0;
+			break;
+		case(5) :
+			exit(0);
+			break;
+		}
+	}
+	
 }
 
 int GameContener::Run()
@@ -61,14 +141,14 @@ bool GameContener::SetupRC()
 	}
 	Uint32 flags;
 	if (full_screen == 1) {
-		flags = SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL;
+		flags = SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_OPENGL ;
 	}
 	else {
 		flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 	}
 	// Create our window 
 	//TODO: zmieniæ na koniec 800 na sdl_windowpos_centered
-	mainWindow = SDL_CreateWindow("FPS Game", 800, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, flags);
+	mainWindow = SDL_CreateWindow("FPS Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, flags);
 
 
 	renderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED);
@@ -115,7 +195,7 @@ bool GameContener::SetupRC()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glOrtho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);
+	glOrtho(0.0f, screen_width, 0.0f, screen_height, -1.0f, 1.0f);
 
 	glEnable(GL_LIGHTING);
 
@@ -165,7 +245,26 @@ void GameContener::Render()
 	glLoadIdentity();
 
 	//	glDisable(GL_LIGHTING);
-	gluPerspective(45, screen_width / screen_height, 0.1, 500.0);
+	if (keys[MOUSE_RIGHT_BUTTION] == 1) {
+
+		zoom += 1;
+		if (zoom >= 20)
+		{
+			zoom = 20;
+		}
+		if (player->haveAnyGun())
+		player->getCurrentWeapon()->setAiming(true);
+
+	}else{
+		zoom -= 4;
+		if (zoom <= 0.0) {
+			zoom = 0.0;
+		}
+		if (player->haveAnyGun())
+		player->getCurrentWeapon()->setAiming(false);
+	}
+	gluPerspective(45-zoom, screen_width / screen_height, 0.1, 500.0 );
+	
 	//glBegin(GL_LINES);
 	//for (int i = 0; i <= 100; i++) {
 	//	glColor3f(1, 0, 0);
@@ -300,6 +399,10 @@ void GameContener::MouseMotion(SDL_MouseMotionEvent * motion)
 		float dx = motion->x - screen_width / 2;
 		float dy = motion->y - screen_height / 2;
 		SDL_WarpMouseInWindow(mainWindow, (screen_width / 2), (screen_height / 2));
+		if (full_screen == 1) {
+			dx *= mouseSensitivity;
+			dy*= mouseSensitivity;
+		}
 		player->lookAt(dx, dy);
 		//int dy = motion->y - screen_height / 2;
 	}
@@ -307,11 +410,11 @@ void GameContener::MouseMotion(SDL_MouseMotionEvent * motion)
 void GameContener::MouseClickDown(SDL_MouseButtonEvent * click)
 {
 
-	if (click[0].type == SDL_MOUSEBUTTONDOWN)
+	if (click->type == SDL_MOUSEBUTTONDOWN && click->button == 1)
 		keys[MOUSE_LEFT_BUTTION] = 1;
-	if (click[1].type == SDL_MOUSEBUTTONDOWN)
+	if (click->type == SDL_MOUSEBUTTONDOWN && click->button == 2)
 		keys[MOUSE_MIDDLE_BUTTION] = 1;
-	if (click[2].type == SDL_MOUSEBUTTONDOWN)
+	if (click->type == SDL_MOUSEBUTTONDOWN && click->button == 3)
 		keys[MOUSE_RIGHT_BUTTION] = 1;
 
 
@@ -320,15 +423,15 @@ void GameContener::MouseClickDown(SDL_MouseButtonEvent * click)
 void GameContener::MouseClickUp(SDL_MouseButtonEvent * click)
 {
 
-	if (click[0].type == SDL_MOUSEBUTTONUP) {
+	if (click->type == SDL_MOUSEBUTTONUP && click->button == 1) {
 		keys[MOUSE_LEFT_BUTTION] = 0;
 		keysChange[MOUSE_LEFT_BUTTION] = 0;
 	}
-	if (click[1].type == SDL_MOUSEBUTTONUP) {
+	if (click->type == SDL_MOUSEBUTTONUP && click->button == 2) {
 		keys[MOUSE_MIDDLE_BUTTION] = 0;
 		keysChange[MOUSE_MIDDLE_BUTTION] = 0;
 	}
-	if (click[2].type == SDL_MOUSEBUTTONUP) {
+	if (click->type == SDL_MOUSEBUTTONUP && click->button == 3) {
 		keys[MOUSE_RIGHT_BUTTION] = 0;
 		keysChange[MOUSE_RIGHT_BUTTION] = 0;
 	}
@@ -432,9 +535,9 @@ void GameContener::StartEngine()
 	map->initTerrain("data/heightMap.bmp","data/grass2.bmp","data/water.bmp", 0.1);
 	player = new Player(vector3d(rand() % map->terrain->width, 20, -rand() % map->terrain->height), 0);
 
-	player->addWeapon("pistol", 0.5, 1, 10, 300, 5, 12, 1000, 1000, animations, animationName::PistolNormal);
-	player->addWeapon("AK", 0.3, 2, 15, 500, 5, 100, 80, 80, animations, animationName::AKNormal);
-	player->addWeapon("Shotgun", 1.5, 1.5, 200, 20, 2, 2, 20, 20, animations, animationName::ShotgunNormal);
+	player->addWeapon("pistol", 0.5, 1, 10, 300, 5, 12, 250, 1000, animations, animationName::PistolNormal);
+	player->addWeapon("AK", 0.3, 2, 15, 500, 5, 100, 80, 320, animations, animationName::AKNormal);
+	player->addWeapon("Shotgun", 1.5, 1.5, 200, 20, 2, 2, 20, 80, animations, animationName::ShotgunNormal);
 
 
 	enemy = new std::list<Enemy*>;
@@ -444,9 +547,10 @@ void GameContener::StartEngine()
 	bullets = new BulletFactory();
 
 	mapElements = new WorldObjects();
+	mapElements->addModel(animations->getAnimation(animationName::Portal), 1, map->terrain->width, map->terrain->height, kind::finish);
 	mapElements->addModel(animations->getAnimation(animationName::ObjectRock), 10, map->terrain->width, map->terrain->height,kind::flora);
 	mapElements->addModel(animations->getAnimation(animationName::ObjectTree), 5, map->terrain->width, map->terrain->height, kind::flora);
-	mapElements->addModel(animations->getAnimation(animationName::Portal), 1, map->terrain->width, map->terrain->height, kind::finish);
+	
 
 	for (int i = 0; i < mapElements->getSize(); i++) {
 		vector3d tmp = mapElements->getPosition(i);
@@ -477,9 +581,9 @@ void GameContener::DoEngine()
 				//add ammo or  health bonus 
 				int g = rand() % 8;
 				if (g == 0)
-					mapElements->addOneModel(animations->getAnimation(animationName::AddBullets), (*it)->getSphere()->center, kind::ammo);
+					mapElements->addOneModel(animations->getAnimation(animationName::AddBullets), (*it)->getSphere()->center + vector3d(0, 1.5, 0), kind::ammo);
 				else if (g == 1)
-					mapElements->addOneModel(animations->getAnimation(animationName::AddHealth), (*it)->getSphere()->center, kind::health);
+					mapElements->addOneModel(animations->getAnimation(animationName::AddHealth), (*it)->getSphere()->center+vector3d(0, 1.5,0), kind::health);
 
 				it = enemy->erase(it);
 				enemy->push_back(new Enemy(100, 0.1, 10, collisionsphere(vector3d(rand() % map->terrain->width, 50, -rand() % map->terrain->height), 2), vector3d(0, 0, 0), player->getCamera()->getLocation(), animations, 1, 4, 0.5));
@@ -494,7 +598,7 @@ void GameContener::DoEngine()
 		mapElements->update();
 
 		if (player->haveAnyGun()) {
-			text->changeValues(player->getHealth(), player->getEnergy(), player->getCurrentWeapon()->getAmmoClip(), player->getCurrentWeapon()->getAllBullets(), player->getPoints(), player->getCurrentWeapon()->getName(), "0.lvl0", framespersecond);
+			text->changeValues(player->getHealth(), player->getEnergy(), player->getCurrentWeapon()->getAmmoClip(), player->getCurrentWeapon()->getAllBullets(), player->getPoints(), player->getCurrentWeapon()->getName(), "lvl: " + std::to_string(lvl), framespersecond);
 		}
 		else {
 			text->changeValues(player->getHealth(), player->getEnergy(), 0, 0, player->getPoints(), "    ", "lvl: "+std::to_string(lvl), framespersecond);
@@ -511,7 +615,7 @@ void GameContener::DoEngine()
 			mapElements->addModel(animations->getAnimation(animationName::ObjectRock), 8, map->terrain->width, map->terrain->height, kind::flora);
 			mapElements->addModel(animations->getAnimation(animationName::ObjectTree), 2, map->terrain->width, map->terrain->height, kind::flora);
 			mapElements->addModel(animations->getAnimation(animationName::Portal), 1, map->terrain->width, map->terrain->height, kind::finish);
-			for (int i = 0; i < mapElements->getSize(); i++) {
+				for (int i = 0; i < mapElements->getSize(); i++) {
 				vector3d tmp = mapElements->getPosition(i);
 				tmp.changeY(map->getTerrainHeight(tmp.getX(), tmp.getZ()));
 				mapElements->setHeight(i, tmp.getY());
@@ -526,10 +630,7 @@ void GameContener::DoEngine()
 			player->setNewLevelState();
 			player->setPosition(vector3d( rand() % map->terrain->width -15, 20, -rand() % map->terrain->height+15));
 			player->setStartPosition(player->getCamera()->getLocation());
-			if (player->getHealth() < 100) {
-				player->setHealth(100);
-			}
-			player->addPoints(1000);
+			player->addPoints(500);
 
 			bullets->~BulletFactory();
 			bullets = new BulletFactory();
@@ -572,6 +673,90 @@ void GameContener::RenderPause()
 
 	text->renderText("Pause", { 255,0,100 }, coordinates::CENTER, 0, 0);
 	SDL_GL_SwapWindow(mainWindow);
+
+}
+
+void GameContener::fpsinit()
+{
+
+	// Set all frame times to 0ms.
+	memset(frametimes, 0, sizeof(frametimes));
+	framecount = 0;
+	framespersecond = 0;
+	frametimelast = SDL_GetTicks();
+
+}
+
+void GameContener::resizeWindow(int w, int h)
+{
+	glViewport(0, 0, w, h);// reset the viewport
+	glMatrixMode(GL_PROJECTION); // modify the projection matrix
+	glLoadIdentity();            // load an identity matrix into the projection matrix
+	glOrtho(0, w, 0, h, -1.0, 1.0); // create new projection matrix
+
+									/// Important!!! You need to switch back to the model-view matrix
+									/// or else your OpenGL calls are modifying the projection matrix!
+	glMatrixMode(GL_MODELVIEW); // return to the model matrix
+	glLoadIdentity();           // load an identity matrix into the model-view matrix
+
+								// OpenGL has now compensated for the resized window, and is ready to draw again.
+
+
+}
+
+void GameContener::fpsthink()
+{
+
+	Uint32 frametimesindex;
+	Uint32 getticks;
+	Uint32 count;
+	Uint32 i;
+
+	// frametimesindex is the position in the array. It ranges from 0 to FRAME_VALUES.
+	// This value rotates back to 0 after it hits FRAME_VALUES.
+	frametimesindex = framecount % FRAME_VALUES;
+
+	// store the current time
+	getticks = SDL_GetTicks();
+
+	// save the frame time value
+	frametimes[frametimesindex] = getticks - frametimelast;
+
+	// save the last frame time for the next fpsthink
+	frametimelast = getticks;
+
+	// increment the frame count
+	framecount++;
+
+	// Work out the current framerate
+
+	// The code below could be moved into another function if you don't need the value every frame.
+
+	// I've included a test to see if the whole array has been written to or not. This will stop
+	// strange values on the first few (FRAME_VALUES) frames.
+	if (framecount < FRAME_VALUES) {
+
+		count = framecount;
+
+	}
+	else {
+
+		count = FRAME_VALUES;
+
+	}
+
+	// add up all the values and divide to get the average frame time.
+	framespersecond = 0;
+	for (i = 0; i < count; i++) {
+
+		framespersecond += frametimes[i];
+
+	}
+
+	framespersecond /= count;
+
+	// now to make it an actual frames per second value...
+	framespersecond = 1000.f / framespersecond;
 
 }
 

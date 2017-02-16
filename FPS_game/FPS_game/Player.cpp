@@ -15,6 +15,7 @@ Player::Player(vector3d position, int points) :health(100), energy(100), isSprin
 	r = 0.5;
 	beHit = false;
 	hitTimeDisplay = 0;
+	groundCollision = false;
 }
 
 Player::~Player()
@@ -90,8 +91,9 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 
 	if (keys[SDL_SCANCODE_LEFT] == 1 || keys[SDL_SCANCODE_A]) {
 		cam->strafe(-1.0f * WALK_SPEED * modifier);
-		if (isSprint)
+		if (isSprint) {
 			energy -= 0.5;
+		}
 	}
 	if (keys[SDL_SCANCODE_RIGHT] == 1 || keys[SDL_SCANCODE_D]) {
 		cam->strafe(WALK_SPEED*modifier);
@@ -149,42 +151,27 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 	cam->rotatePitch(0.005*(-dy));
 	dy = 0;
 
+	vector3d newpos(cam->getLocation());
 
-
-	//if (getY() > groundHeight + 4.0f) {
-	//	if ((getY() - groundHeight) < 4) {
-	//		direction += vector3d(0, (groundHeight - getY()) + 2.0f, 0);
-	//		groundCollision = true;
-	//	}
-	//	if ((getY() - groundHeight) > 4)
-	//		direction += force;
-
-	//}
-
-	//if (getY() < groundHeight + 4.0f) {
-	//	direction += vector3d(0, groundHeight - getY() + 0.6f, 0);
-	//	groundCollision = true;
-	//}
-
-
-
-	if (getY() - groundHeight <= 2) {
-		vector3d t = cam->getLocation();
-		t.changeY(t.getY() + 0.5);
-		cam->setLocation(t);
-		groundCollision = true;
-	}
-	else if(getY() - groundHeight > 2.6){
+	if(groundCollision==true)
+		newpos.changeY(groundHeight + 2.8);
+	else {
 		direction += force;
+		if (getY() <= groundHeight + 2.8) {
+			newpos.changeY(groundHeight + 2.8);
+			groundCollision = true;
+		}
 	}
-
-	if (energy < 100 && !isSprint)
-		energy += 0.1;
-
-
+	
+	if (!isSprint) {
+			energy += 0.1;
+		if (energy > 100) {
+			energy = 100;
+		}
+	}
 	isSprint = false;
 
-	vector3d newpos(cam->getLocation());
+	
 
 	newpos += direction;
 	bool collide=false;
@@ -237,7 +224,7 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 			map->getBox()[i]->get1point(),
 			map->getBox()[i]->get2point(),
 			map->getBox()[i]->get3point(),
-			map->getBox()[i]->get4point(), r);
+			map->getBox()[i]->get4point(), 2.8);
 	}
 	cam->setLocation(newpos);
 	direction.change(0, 0, 0);

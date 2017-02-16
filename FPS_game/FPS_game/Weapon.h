@@ -68,5 +68,6 @@ public:
 	void reload();
 	void resetAmmo();
 	void show(float angleYaw, float anglePitch, float dt);
+	void setAiming(bool state);
 
 };

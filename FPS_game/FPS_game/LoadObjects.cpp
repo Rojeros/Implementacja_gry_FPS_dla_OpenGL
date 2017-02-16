@@ -1,4 +1,4 @@
-#include "LevelLoad.h"
+#include "LoadObjects.h"
 #include "FreeImage.h"
 //TODO: add errors
 
@@ -23,11 +23,11 @@ material::material(const char* na, float al, float n, float ni2, float* d, float
 	illum = i;
 	texture = t;
 }
-LevelLoad::LevelLoad() :isCollisionLoad(false)
+LoadObjects::LoadObjects() :isCollisionLoad(false)
 {
 
 }
-int LevelLoad::parseMaterialFile(char* line, std::string path, std::vector<std::string>* tmp)
+int LoadObjects::parseMaterialFile(char* line, std::string path, std::vector<std::string>* tmp)
 {
 	char filen[200];
 	sscanf_s(line, "mtllib %s", filen, 200);
@@ -48,7 +48,7 @@ int LevelLoad::parseMaterialFile(char* line, std::string path, std::vector<std::
 	}
 	return 0;
 }
-int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * newObject, std::vector<material> & mainMaterial)
+int LoadObjects::parseMaterial(char* line, const std::string& fileName, Object * newObject, std::vector<material> & mainMaterial)
 {
 
 	std::vector<std::string> tmp;
@@ -241,7 +241,7 @@ int LevelLoad::parseMaterial(char* line, const std::string& fileName, Object * n
 
 	return 1;
 }
-Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*> *collision)
+Object * LoadObjects::loadFromFile(std::string path, bool isTexturFileIsLoad, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*> *collision)
 {
 	//temp array for create buffer of normal's vertex
 	std::vector<vector3d > normalsTemp;
@@ -276,7 +276,9 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 	std::ifstream in(path.c_str());
 	if (!in.is_open())
 	{
-		return 0;
+		path = "can't open a file: "+path;
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error",  path.c_str(), NULL);
+		exit(3);
 	}
 
 	//read whole wevefront file
@@ -585,7 +587,7 @@ Object * LevelLoad::loadFromFile(std::string path, bool isTexturFileIsLoad, std:
 	return newObject;
 }
 
-std::vector<Object*>* LevelLoad::animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*>* collision, int &frames)
+std::vector<Object*>* LoadObjects::animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*>* collision, int &frames)
 {
 
 	std::vector<Object*>* anim=new std::vector<Object*>();
@@ -621,7 +623,7 @@ std::vector<Object*>* LevelLoad::animation(std::string path, std::vector<materia
 			}
 		} while (!stop);
 	}
-	if (counter == -1) {
+	if (counter <= -1) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error",	"animation loading error.",	NULL);
 		exit(3);
 	}
@@ -631,7 +633,7 @@ std::vector<Object*>* LevelLoad::animation(std::string path, std::vector<materia
 
 
 
-LevelLoad::~LevelLoad()
+LoadObjects::~LoadObjects()
 {
 	
 }

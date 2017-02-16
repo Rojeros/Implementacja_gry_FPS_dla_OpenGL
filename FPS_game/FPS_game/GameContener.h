@@ -10,7 +10,7 @@
 #include "Map.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "LevelLoad.h"
+#include "LoadObjects.h"
 #include "Object.h"
 #include "ObjectContainer.h"
 #include <cstdlib>
@@ -50,6 +50,8 @@ private:
 	int full_screen;
 	bool gameRunning;
 	bool gamePause;
+	float mouseSensitivity;
+	float zoom;
 	std::list<Enemy*> * enemy;
 	BulletFactory * bullets;
 	WorldObjects * mapElements;
@@ -95,83 +97,8 @@ private:
 	float framespersecond;
 
 	// This function gets called once on startup.
-	void fpsinit() {
-
-		// Set all frame times to 0ms.
-		memset(frametimes, 0, sizeof(frametimes));
-		framecount = 0;
-		framespersecond = 0;
-		frametimelast = SDL_GetTicks();
-
-	}
-	void resizeWindow(int w, int h) {
-		glViewport(0, 0, w, h);// reset the viewport
-		glMatrixMode(GL_PROJECTION); // modify the projection matrix
-		glLoadIdentity();            // load an identity matrix into the projection matrix
-		glOrtho(0, w, 0, h, -1.0, 1.0); // create new projection matrix
-
-												 /// Important!!! You need to switch back to the model-view matrix
-												 /// or else your OpenGL calls are modifying the projection matrix!
-		glMatrixMode(GL_MODELVIEW); // return to the model matrix
-		glLoadIdentity();           // load an identity matrix into the model-view matrix
-
-									// OpenGL has now compensated for the resized window, and is ready to draw again.
-
-
-	}
-	void fpsthink() {
-
-		Uint32 frametimesindex;
-		Uint32 getticks;
-		Uint32 count;
-		Uint32 i;
-
-		// frametimesindex is the position in the array. It ranges from 0 to FRAME_VALUES.
-		// This value rotates back to 0 after it hits FRAME_VALUES.
-		frametimesindex = framecount % FRAME_VALUES;
-
-		// store the current time
-		getticks = SDL_GetTicks();
-
-		// save the frame time value
-		frametimes[frametimesindex] = getticks - frametimelast;
-
-		// save the last frame time for the next fpsthink
-		frametimelast = getticks;
-
-		// increment the frame count
-		framecount++;
-
-		// Work out the current framerate
-
-		// The code below could be moved into another function if you don't need the value every frame.
-
-		// I've included a test to see if the whole array has been written to or not. This will stop
-		// strange values on the first few (FRAME_VALUES) frames.
-		if (framecount < FRAME_VALUES) {
-
-			count = framecount;
-
-		}
-		else {
-
-			count = FRAME_VALUES;
-
-		}
-
-		// add up all the values and divide to get the average frame time.
-		framespersecond = 0;
-		for (i = 0; i < count; i++) {
-
-			framespersecond += frametimes[i];
-
-		}
-
-		framespersecond /= count;
-
-		// now to make it an actual frames per second value...
-		framespersecond = 1000.f / framespersecond;
-
-	}
+	void fpsinit();
+	void resizeWindow(int w, int h);
+	void fpsthink();
 };
 

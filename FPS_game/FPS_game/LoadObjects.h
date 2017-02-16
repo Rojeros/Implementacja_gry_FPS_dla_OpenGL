@@ -11,14 +11,14 @@
 #include <sys/stat.h>
 
 
-class LevelLoad
+class LoadObjects
 {
 public:
 
-	LevelLoad();
+	LoadObjects();
 	Object* loadFromFile(std::string path,bool isTexturFileIsLoad, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*> *collision);
 	std::vector<Object*> *animation(std::string path, std::vector<material> & mainMaterial, std::vector<materialVertex> &mainMaterialsVertex, std::vector<CollisionPlane*>* collision, int &frames);
-	~LevelLoad();
+	~LoadObjects();
 private:
 	std::vector<std::string> loadedTextures;
 	std::vector<int> loadedTexturesNum;

@@ -94,6 +94,11 @@ void vector3d::changeZ(float c)
 	z = c;
 }
 
+vector3d vector3d::multipleConstWithoutY(const vector3d & vec2)
+{
+	return vector3d(this->x*vec2.x,this->y, this->z*vec2.z );
+}
+
 
 
 

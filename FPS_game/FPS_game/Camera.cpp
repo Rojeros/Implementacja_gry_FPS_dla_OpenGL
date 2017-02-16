@@ -22,7 +22,7 @@ void Camera::init()
 
 void Camera::refresh()
 {
-	
+
 	// Camera parameter according to Riegl's co-ordinate system
 	m_lx = cos(m_yaw) * cos(m_pitch);
 	m_ly = sin(m_pitch);

@@ -86,7 +86,16 @@ Map::~Map()
 
 void Map::loadHeightMap(char *fileName, float heightFactor)
 {
+
 	SDL_Surface* bitmap = SDL_LoadBMP(fileName);
+	if (bitmap == NULL) {
+
+		std::string text = fileName;
+		text = "can't open a file: " + text;
+		
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+		exit(3);
+	}
 
 	//	FILE *file;
 	unsigned char *terrainData;
@@ -215,8 +224,13 @@ void Map::initTerrain(char *fileName, char*floorTexture, char*horizonTexture,flo
 		fif = FreeImage_GetFIFFromFilename(floorTexture);
 	//if still unkown, return failure
 	if (fif == FIF_UNKNOWN) {
-		std::cout << "image loading error\n";
-		return;
+		
+			std::string text = floorTexture;
+			text = "can't open a file: " + text;
+
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+			exit(3);
+		
 	}
 	//std::cout << "FIF " << fif << " " << filename << std::endl;
 
@@ -225,8 +239,11 @@ void Map::initTerrain(char *fileName, char*floorTexture, char*horizonTexture,flo
 		dib = FreeImage_Load(fif, floorTexture);
 	//if the image failed to load, return failure
 	if (!dib) {
-		std::cout << "image loading error\n";
-		return ;
+		std::string text = floorTexture;
+		text = "can't open a file: " + text;
+
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+		exit(3);
 	}
 	//retrieve the image data
 	bits = FreeImage_GetBits(dib);
@@ -238,13 +255,20 @@ void Map::initTerrain(char *fileName, char*floorTexture, char*horizonTexture,flo
 	if (color != FIC_RGB && color != FIC_RGBALPHA)
 	{
 		FreeImage_Unload(dib);
-		std::cout << "image loading error\n";
-		return ;
+		std::string text = floorTexture;
+		text = "color error in file: " + text;
+
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+		exit(3);
 	}
 	//if this somehow one of these failed (they shouldn't), return failure
 	//	std::cout << (bits == 0) << std::endl;
 	if ((bits == 0) || (width == 0) || (height == 0)) {
-		std::cout << "image loading error\n";
+		std::string text = floorTexture;
+		text = "size error in file: " + text;
+
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+		exit(3);
 		return ;
 	}
 	//std::cout << width << " " << height << std::endl;
@@ -286,8 +310,11 @@ void Map::initTerrain(char *fileName, char*floorTexture, char*horizonTexture,flo
 		fif = FreeImage_GetFIFFromFilename(horizonTexture);
 	//if still unkown, return failure
 	if (fif == FIF_UNKNOWN) {
-		std::cout << "image loading error\n";
-		return;
+		std::string text = horizonTexture;
+		text = "can't open a file: " + text;
+
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+		exit(3);
 	}
 	//std::cout << "FIF " << fif << " " << filename << std::endl;
 
@@ -296,8 +323,11 @@ void Map::initTerrain(char *fileName, char*floorTexture, char*horizonTexture,flo
 		dib = FreeImage_Load(fif, horizonTexture);
 	//if the image failed to load, return failure
 	if (!dib) {
-		std::cout << "image loading error\n";
-		return;
+		std::string text = horizonTexture;
+		text = "can't open a file: " + text;
+
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+		exit(3);
 	}
 	//retrieve the image data
 	bits = FreeImage_GetBits(dib);
@@ -308,15 +338,20 @@ void Map::initTerrain(char *fileName, char*floorTexture, char*horizonTexture,flo
 	color = FreeImage_GetColorType(dib);
 	if (color != FIC_RGB && color != FIC_RGBALPHA)
 	{
-		FreeImage_Unload(dib);
-		std::cout << "image loading error\n";
-		return;
+		std::string text = horizonTexture;
+		text = "color error in file: " + text;
+
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+		exit(3);
 	}
 	//if this somehow one of these failed (they shouldn't), return failure
 	//	std::cout << (bits == 0) << std::endl;
 	if ((bits == 0) || (width == 0) || (height == 0)) {
-		std::cout << "image loading error\n";
-		return;
+		std::string text = horizonTexture;
+		text = "size error in file: " + text;
+
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", text.c_str(), NULL);
+		exit(3);
 	}
 	//std::cout << width << " " << height << std::endl;
 	//if this texture ID is in use, unload the current texture
