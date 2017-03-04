@@ -16,7 +16,7 @@ class BulletFactory;
 
 static float LOOK_SPEED = 0.005;
 static float WALK_SPEED = 0.3;
-
+static float ADD_HEIGHT = 2.8;
 
 #define MOUSE_LEFT_BUTTION 282
 #define MOUSE_MIDDLE_BUTTION 283

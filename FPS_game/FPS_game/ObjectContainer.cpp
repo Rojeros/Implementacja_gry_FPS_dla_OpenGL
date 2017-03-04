@@ -47,7 +47,6 @@ ObjectContainer::~ObjectContainer()
 
 void ObjectContainer::draw(float dt)
 {
-
 	if (frames > 0) {
 		time += dt;
 
@@ -57,8 +56,6 @@ void ObjectContainer::draw(float dt)
 				currentFrame++;
 			} while (time > timePerFrame);
 		}
-
-
 
 		if (currentFrame > frames - 1) {
 			if (isLoop) {

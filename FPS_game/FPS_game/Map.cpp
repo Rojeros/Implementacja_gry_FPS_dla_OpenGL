@@ -507,7 +507,7 @@ float Map::getTerrainHeight( float x, float z)
 	float a, b, c, d;
 	float height;
 	cellIndex activeTriangle = getActiveTriangle( x, z);
-
+	//przypisywanie odpowiednich wierzcho³ków w zale¿noœci od pozycji trójk¹ta w kwadracie
 	if (activeTriangle.index_triangle == 0)
 	{
 		vertices[0].x = terrain->vertices[activeTriangle.index_x - 1][activeTriangle.index_z - 1].x;

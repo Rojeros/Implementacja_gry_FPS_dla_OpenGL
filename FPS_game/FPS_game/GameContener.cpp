@@ -104,16 +104,13 @@ int GameContener::Run()
 			ProcessEvents();
 			DoEngine();
 			Render();
-
 		}
 		if (gameRunning) {
 			WaitFrame(5);
 			RenderPause();
 			ProcessEvents();
 		}
-
 	}
-
 }
 
 

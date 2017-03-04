@@ -99,26 +99,25 @@ bool Enemy::update(float groundHeight, WorldObjects * collisions, vector3d playe
 	}
 	else {
 		direction.change(0, 0, 0);
+		//grawitacja
 		if ((cs.center.getY() > groundHeight+cs.r))
 			direction += force;
-
 		if ((cs.center.getY() < groundHeight + cs.r*0.7))
 			direction.changeY((-force.y*1.3));
 
 		vector3d newpos(cs.center);
 		newpos += direction;
+		//zapisanie pozycji
 		setLocation(newpos);
 
-
-		//rotation2 = playerpos;
 		direction.change(0, 0, 0);
+		//wektor kierunkowy w kierunku gracza
 		direction.change(playerpos - cs.center);
-		//direction.changeY(0);
 		direction.normalize();
 		vector3d tmp(rotation);
-		//tmp.changeY(0);
 		tmp.normalize();
 
+		//wyznaczenie k¹tu obrotu w stosunku do gracza
 		angle = tmp.dotproduct(direction);
 		if (angle < -1)
 			angle = -1;
@@ -126,12 +125,11 @@ bool Enemy::update(float groundHeight, WorldObjects * collisions, vector3d playe
 			angle = 1;
 		angle = (std::acos(angle / (tmp.length()*direction.length())));
 		angle = angle*(float)180 / (float)M_PI;
+		//wyznaczenie kierunku obrotu
 		if (playerpos.x < cs.center.x) {
 			angle = -angle;
 		}
 		savedir = direction;
-
-		//	rotation2 = rotation.crossproduct(direction);
 		direction.change(0, 0, 0);
 
 		switch (currentState) {
@@ -157,9 +155,7 @@ bool Enemy::update(float groundHeight, WorldObjects * collisions, vector3d playe
 		case(CurrentState::walk) :
 		{
 
-		
 			direction.change(playerpos - cs.center);
-			//direction.changeY(0);
 			direction.normalize();
 
 			vector3d newpos(cs.center);

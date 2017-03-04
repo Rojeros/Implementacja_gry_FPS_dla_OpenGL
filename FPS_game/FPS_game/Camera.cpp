@@ -64,7 +64,7 @@ vector3d Camera::getDirectionVector()
 	return(vector3d(m_lx, m_ly, m_lz));
 
 }
-
+//do porzodu lub do ty³u
 void Camera::move(float incr)
 {
 
@@ -73,16 +73,13 @@ void Camera::move(float incr)
 
 	location.x +=  incr*lx;
 	location.z +=  incr*lz;
-
 	refresh();
 }
-
+//na boki
 void Camera::strafe(float incr)
 {
 	float lx = cos(m_yaw)*cos(m_pitch);
-	float ly = sin(m_pitch);
 	float lz = sin(m_yaw)*cos(m_pitch);
-
 
 	location.x += -lz*incr;
 	location.z += lx*incr;

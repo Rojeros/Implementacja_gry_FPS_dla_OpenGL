@@ -2,7 +2,7 @@
 #include <SDL.h>
 
 
-Player::Player(vector3d position, int points) :health(100), energy(100), isSprint(false), points(points), dx(0), dy(0), isJump(false), jumpHeight(0),isLevelFinished(false)
+Player::Player(vector3d position, int points) :health(100), energy(100), isSprint(false), points(points), dx(0), dy(0), isJump(false), jumpHeight(0), isLevelFinished(false)
 {
 
 	force.change(0.0, -0.45, 0.0);
@@ -57,7 +57,7 @@ void Player::jump()
 
 	}
 }
-
+//ruch myszk¹
 void Player::lookAt(float dx, float dy)
 {
 	this->dx += dx;
@@ -153,41 +153,42 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 
 	vector3d newpos(cam->getLocation());
 
-	if(groundCollision==true)
-		newpos.changeY(groundHeight + 2.8);
+	if (groundCollision == true) {
+		newpos.changeY(groundHeight + ADD_HEIGHT);
+	}
 	else {
 		direction += force;
-		if (getY() <= groundHeight + 2.8) {
-			newpos.changeY(groundHeight + 2.8);
+		if (getY() <= groundHeight + ADD_HEIGHT) {
+			newpos.changeY(groundHeight + ADD_HEIGHT);
 			groundCollision = true;
 		}
 	}
-	
+
 	if (!isSprint) {
-			energy += 0.1;
+		energy += 0.1;
 		if (energy > 100) {
 			energy = 100;
 		}
 	}
 	isSprint = false;
 
-	
+
 
 	newpos += direction;
-	bool collide=false;
+	bool collide = false;
 	if (collisions != NULL) {
 		for (int i = 0; i < collisions->getSize(); i++) {
 			for (int j = 0; j < 6; j++) {
-				collide=Collision::sphereplane(newpos,
+				collide = Collision::sphereplane(newpos,
 					collisions->getCollisonPLane(i, j)->getnormal(),
 					collisions->getCollisonPLane(i, j)->get1point(),
 					collisions->getCollisonPLane(i, j)->get2point(),
 					collisions->getCollisonPLane(i, j)->get3point(),
 					collisions->getCollisonPLane(i, j)->get4point(), r);
-				if ((collide == true) &&( collisions->getType(i) != kind::flora)) {
+				if ((collide == true) && (collisions->getType(i) != kind::flora)) {
 					switch (collisions->getType(i))
 					{
-					case(kind::ammo):
+					case(kind::ammo) :
 					{
 						for (int i = 0; i < arsenal->size(); i++) {
 							arsenal->at(i)->addAllBullets(50);
@@ -197,9 +198,9 @@ void Player::update(bool * keys, bool * keysChange, float groundHeight, WorldObj
 					}
 					case(kind::health) :
 					{
-						if(health<150){
-						addHealth(+20);
-						collisions->destroyObject(i);
+						if (health < 150) {
+							addHealth(+20);
+							collisions->destroyObject(i);
 						}
 						break;
 					}
@@ -290,7 +291,7 @@ void Player::addWeapon(std::string name, unsigned int power, unsigned int allBul
 	currentWeaponNUmber = arsenal->size() - 1;
 }
 
-void Player::addWeapon(std::string name, float fireAnimationSpeed, float reloadAnimationSpeed,  unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType)
+void Player::addWeapon(std::string name, float fireAnimationSpeed, float reloadAnimationSpeed, unsigned int power, unsigned int allBullets, unsigned int ammoClip, unsigned int maxMagazineBullets, float precision, float aimprecision, GameAnimation * copy, animationName weaponType)
 {
 	arsenal->push_back(new Weapon(name, fireAnimationSpeed, reloadAnimationSpeed, power, allBullets, ammoClip, maxMagazineBullets, precision, aimprecision, copy, weaponType));
 	currentWeaponNUmber = arsenal->size() - 1;
@@ -299,7 +300,7 @@ void Player::addWeapon(std::string name, float fireAnimationSpeed, float reloadA
 void Player::nextWeapon()
 {
 	if (!arsenal->empty()) {
-		if (getCurrentWeapon()->getCurrentState()==1) {
+		if (getCurrentWeapon()->getCurrentState() == 1) {
 			currentWeaponNUmber++;
 			if (currentWeaponNUmber > arsenal->size() - 1) {
 				currentWeaponNUmber = 0;
@@ -397,11 +398,12 @@ bool Player::isLevelEnd()
 
 bool Player::wasHit(float dt)
 {
-	
+
 	if (beHit && hitTimeDisplay <= 0.3) {
 		hitTimeDisplay += dt;
 		return true;
-	}else if(beHit && hitTimeDisplay > 0.3){
+	}
+	else if (beHit && hitTimeDisplay > 0.3) {
 		hitTimeDisplay = 0;
 		beHit = false;
 		return false;
